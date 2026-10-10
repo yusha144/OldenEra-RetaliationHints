@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 
 namespace OldenEra.RetaliationHints;
 
-[BepInPlugin(Id, "Olden Era Retaliation Hints", "0.1.0")]
+[BepInPlugin(Id, "Olden Era Retaliation Hints", "0.1.1")]
 public sealed class Plugin : BasePlugin
 {
     internal const string Id = "local.oldenera.retaliationhints";
@@ -31,7 +31,7 @@ public sealed class Plugin : BasePlugin
             _patches = new Harmony(Id);
             _patches.PatchAll(typeof(Plugin).Assembly);
             AddComponent<RetaliationOverlay>();
-            Log.LogInfo($"Retaliation Hints 0.1.0 loaded; {Patterns.Count} supported attack patterns. Current-state estimate, excluding luck and triggered effects; no battle commands or RNG calls.");
+            Log.LogInfo($"Retaliation Hints 0.1.1 loaded; {Patterns.Count} supported attack patterns. Pixel-normalized unit-bar hints; hidden when native retaliation is unavailable. Current-state estimate, excluding luck and triggered effects; no battle commands or RNG calls.");
         }
         catch (Exception error)
         {

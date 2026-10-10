@@ -18,7 +18,7 @@ public sealed class RetaliationOverlay : MonoBehaviour
         try
         {
             var context = PreviewCapture.Current;
-            if (!Plugin.Instance.Enabled.Value || !elb.ckia || context == null
+            if (!Plugin.Instance.Enabled.Value || !elb.ckia || context == null || !context.CanCounter
                 || !PreviewCapture.Same(elb.ckia.ckid, context.Hover)
                 || !PreviewCapture.Same(context.Hover.clcx, context.Defender.ctvn)
                 || !PreviewCapture.Same(context.Hover.cldm, context.Attacker)
@@ -49,13 +49,7 @@ public sealed class RetaliationOverlay : MonoBehaviour
                 try
                 {
                     var loss = NativeForecast.Calculate(context, sample.Damage);
-                    _hint.Set(!context.CanCounter ? "Ответки нет" :
-                        (loss.BeforeAttack ? "До атаки ~ " : "Ответка ~ ") + loss.Numbers, loss.Max > 0);
-                    if (!_reportedPreview)
-                    {
-                        _reportedPreview = true;
-                        Plugin.Instance.Log.LogInfo("First retaliation preview displayed successfully.");
-                    }
+                    _hint.Set((loss.BeforeAttack ? "До атаки ~ " : "Ответка ~ ") + loss.Numbers, loss.Max > 0);
                 }
                 catch (Exception error)
                 {
@@ -63,7 +57,11 @@ public sealed class RetaliationOverlay : MonoBehaviour
                     Plugin.Instance.Report("Unsupported retaliation estimate", error);
                 }
             }
-            _hint.Place(Plugin.Instance.TextScale.Value);
+            if (_hint.Place(Plugin.Instance.TextScale.Value) && !_reportedPreview)
+            {
+                _reportedPreview = true;
+                Plugin.Instance.Log.LogInfo("First retaliation hint placed with verified screen dimensions.");
+            }
         }
         catch (Exception error) { Hide(); Plugin.Instance.Report("Retaliation display", error); }
     }

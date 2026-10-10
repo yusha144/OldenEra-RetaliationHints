@@ -23,6 +23,10 @@ No Harmony detour accepts `DamageUiParams`: that is a non-blittable IL2CPP value
 
 `eof.bgdu` invalidates captured previews. Rendering also requires the same hover context and the native target forecast's visible CanvasGroup. Our widget is a child of the attacker's native bar, with no separate canvas or sorting override; every Graphic has raycasts disabled.
 
+As of 0.1.1, a false native eligibility result clears the current capture and hides the entire annotation before constructing or placing a widget. `Range` is native reaching melee; `Shoot` is the ranged shot. Do not replace native eligibility with an enum-name heuristic.
+
+The first user screenshot exposed unsafe mixed dimensions: border insets were in native local units while the panel size was converted from pixels. Small local rectangles could have negative inner sizes. The root now normalizes both axes to one screen pixel; all descendants, fonts and insets use pixel dimensions. Non-overlay canvases require an actual event/root/scene camera; null-camera world coordinates are not treated as pixels. Placement anchors to the native count rect, ignores the larger health-animation container, stays transparent until its projected dimensions are verified, and is bounded to the viewport. No native transforms or canvases are modified.
+
 The damage envelope represents one retaliation under current stats. Luck rolls, triggered damage/buffs/healing, movement-driven aura changes and other units' reactions are deliberately not simulated in 0.1.0. Therefore numeric text has `~`. This is not an exhaustive or guaranteed bound on real combat results. Temporary stacks and overkill protection are explicitly unsupported rather than silently treated as ordinary health.
 
-Local validation covers health arithmetic, ordinary and preemptive ordering, disabled/absent retaliation, lethal opening attacks, invalid forecasts and installed counterattack-pattern multipliers. IL2CPP hook execution and actual screen placement await user gameplay testing.
+Local validation covers health arithmetic, ordinary and preemptive ordering, disabled/absent retaliation, lethal opening attacks, invalid forecasts and installed counterattack-pattern multipliers. The user's first gameplay test and log confirmed hook execution; corrected 0.1.1 screen placement still awaits their visual check.

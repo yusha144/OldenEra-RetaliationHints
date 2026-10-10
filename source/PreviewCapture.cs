@@ -57,9 +57,13 @@ internal static class PreviewCapture
                 var hover = elb.ckia.ckid;
                 if (hover == null || !Same(hover.cldm, __0) || !Same(hover.cldl, __2)
                     || !Same(hover.clcx, __3) || !Same(__3, __1.ctvn)) return;
+                // Clear the old hint immediately for a shot/prohibited/exhausted
+                // retaliation. Trust the native result, not a guessed attack type:
+                // EAttackType.Range is a reaching melee attack, not Shoot.
+                if (!__result) { Current = null; return; }
                 var view = __1.cmww?.TryCast<eml>()?.ckom?.cmot;
                 if (!view) return;
-                var counter = __result ? __1.ckyj.bdui(__1, __0, __2, __instance.cliq.clgw, __instance.clis, __4) : null;
+                var counter = __1.ckyj.bdui(__1, __0, __2, __instance.cliq.clgw, __instance.clis, __4);
                 var destination = __0.ctvn;
                 var type = __2.cjuj.csus;
                 if ((type == Hex.Configs.EAttackType.Melee || type == Hex.Configs.EAttackType.Range)
