@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 
 namespace OldenEra.RetaliationHints;
 
-[BepInPlugin(Id, "Olden Era Retaliation Hints", "0.1.3")]
+[BepInPlugin(Id, "Olden Era Retaliation Hints", "0.1.4")]
 public sealed class Plugin : BasePlugin
 {
     internal const string Id = "local.oldenera.retaliationhints";
@@ -16,6 +16,7 @@ public sealed class Plugin : BasePlugin
     internal readonly AttackPatterns Patterns = new();
     private Harmony _patches;
     private readonly HashSet<string> _reported = new();
+    private readonly HashSet<string> _traced = new();
 
     public override void Load()
     {
@@ -31,7 +32,7 @@ public sealed class Plugin : BasePlugin
             _patches = new Harmony(Id);
             _patches.PatchAll(typeof(Plugin).Assembly);
             AddComponent<RetaliationOverlay>();
-            Log.LogInfo($"Retaliation Hints 0.1.3 loaded; {Patterns.Count} supported attack patterns. Cursor hints with native UI font/material and visible-glyph sizing; hidden when retaliation is unavailable. Current-state estimate, excluding luck and triggered effects; no battle commands or RNG calls.");
+            Log.LogInfo($"Retaliation Hints 0.1.4 loaded; {Patterns.Count} supported attack patterns. Capture scoped to native hover preview; cursor text supports deferred font initialization. Current-state estimate, excluding luck and triggered effects; no battle commands or RNG calls.");
         }
         catch (Exception error)
         {
@@ -43,6 +44,11 @@ public sealed class Plugin : BasePlugin
     internal void Report(string context, Exception error)
     {
         if (_reported.Add(context + error.GetType().Name)) Log.LogWarning($"{context}: {error}");
+    }
+
+    internal void TraceOnce(string stage, string detail)
+    {
+        if (_traced.Count < 24 && _traced.Add(stage)) Log.LogInfo($"Preview stage [{stage}]: {detail}");
     }
 
     private static bool Matches(string path, string expected)

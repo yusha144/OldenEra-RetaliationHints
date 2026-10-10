@@ -19,28 +19,30 @@ public sealed class RetaliationOverlay : MonoBehaviour
     {
         try
         {
+            if (!Plugin.Instance.Enabled.Value || !elb.ckia) { Hide(); return; }
+            Plugin.Instance.TraceOnce("battle-update", "Retaliation display updater is running in a battle.");
             var context = PreviewCapture.Current;
-            if (!Plugin.Instance.Enabled.Value || !elb.ckia || context == null || !context.CanCounter
-                || !PreviewCapture.Same(elb.ckia.ckid, context.Hover)
-                || !PreviewCapture.Same(context.Hover.clcx, context.Defender.ctvn)
+            if (context == null || !context.CanCounter) { Hide(); return; }
+            if (!PreviewCapture.Same(elb.ckia.ckid, context.Hover)
+                || !PreviewCapture.Same(context.Hover.clcx, context.TargetHex)
+                || !PreviewCapture.Occupies(context.Defender, context.TargetHex)
                 || !PreviewCapture.Same(context.Hover.cldm, context.Attacker)
-                || !PreviewCapture.Same(context.Hover.cldl, context.Attack)
-                || !context.TargetView || !context.TargetView.gameObject.activeInHierarchy
-                || !PreviewCapture.Samples.TryGetValue(context.TargetView.Pointer, out var sample)
-                || !sample.Damage.Valid)
-            { Hide(); return; }
+                || !PreviewCapture.Same(context.Hover.cldl, context.Attack))
+            { Hide("hover-changed"); return; }
+            if (!context.TargetView || !context.TargetView.gameObject.activeInHierarchy || !context.Damage.Valid)
+            { Hide("target-panel-unavailable"); return; }
 
             var forecast = context.TargetView.healDamageForecast;
             if (!forecast || !forecast.gameObject.activeInHierarchy || !forecast.cg
                 || !forecast.cg.gameObject.activeInHierarchy || forecast.cg.alpha < .01f)
-            { Hide(); return; }
+            { Hide("native-forecast-hidden"); return; }
             var battleUi = BattleUIController.me;
             if (!battleUi || !battleUi.gameObject.activeInHierarchy || battleUi.ccgc != TypeBattleUI.Normal)
-            { Hide(); return; }
+            { Hide("battle-ui-not-normal"); return; }
             var cursorUi = battleUi.cszk;
-            if (!cursorUi || !cursorUi.gameObject.activeInHierarchy || !cursorUi.rootCanvasRect
+            if (!cursorUi || !cursorUi.rootCanvasRect
                 || !cursorUi.simpleTooltip || !cursorUi.simpleTooltip.targetsText)
-            { Hide(); return; }
+            { Hide("cursor-resources-unavailable"); return; }
             if (!_cursorUi || _cursorUi.Pointer != cursorUi.Pointer || _hint == null || !_hint.Root)
             {
                 _hint?.Destroy(); _cursorUi = cursorUi;
@@ -48,18 +50,19 @@ public sealed class RetaliationOverlay : MonoBehaviour
             }
             if (_lastAttacker != context.Attacker.Pointer || _lastTarget != context.Defender.Pointer
                 || _lastAbility != context.Attack.Pointer || _lastDestination != (context.Destination?.Pointer ?? IntPtr.Zero)
-                || _lastCounter != (context.Counter?.Pointer ?? IntPtr.Zero) || _lastDamage != sample.Damage) _nextCalculation = 0;
+                || _lastCounter != (context.Counter?.Pointer ?? IntPtr.Zero) || _lastDamage != context.Damage) _nextCalculation = 0;
             if (Time.unscaledTime >= _nextCalculation)
             {
                 _nextCalculation = Time.unscaledTime + .12f;
                 _lastAttacker = context.Attacker.Pointer; _lastTarget = context.Defender.Pointer;
                 _lastAbility = context.Attack.Pointer;
                 _lastDestination = context.Destination?.Pointer ?? IntPtr.Zero;
-                _lastCounter = context.Counter?.Pointer ?? IntPtr.Zero; _lastDamage = sample.Damage;
+                _lastCounter = context.Counter?.Pointer ?? IntPtr.Zero; _lastDamage = context.Damage;
                 try
                 {
-                    var loss = NativeForecast.Calculate(context, sample.Damage);
+                    var loss = NativeForecast.Calculate(context, context.Damage);
                     _hint.Set((loss.BeforeAttack ? "До атаки ~ " : "Ответка ~ ") + loss.Numbers, loss.Max > 0);
+                    Plugin.Instance.TraceOnce("loss-calculated", $"First casualty range: {loss.Numbers}, preemptive={loss.BeforeAttack}.");
                 }
                 catch (Exception error)
                 {
@@ -76,6 +79,10 @@ public sealed class RetaliationOverlay : MonoBehaviour
         catch (Exception error) { Hide(); Plugin.Instance.Report("Retaliation display", error); }
     }
 
-    private void Hide() { _hint?.Hide(); _nextCalculation = 0; }
-    public void OnDestroy() { _hint?.Destroy(); PreviewCapture.Current = null; PreviewCapture.Samples.Clear(); }
+    private void Hide(string reason = null)
+    {
+        _hint?.Hide(); _nextCalculation = 0;
+        if (reason != null) Plugin.Instance.TraceOnce(reason, "Captured preview hidden: " + reason);
+    }
+    public void OnDestroy() { _hint?.Destroy(); PreviewCapture.Current = null; }
 }

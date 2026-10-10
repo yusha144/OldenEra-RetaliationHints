@@ -1,5 +1,15 @@
 # Changes
 
+## 0.1.4 — 2026-10-10
+
+- The user reported no hint during an eligible melee preview. The 0.1.3 log confirms startup but contains neither a text preparation record nor a display exception; it does not identify the exact early rejection.
+- Scope damage and retaliation capture to the native `eof.bgdy` hover display call. Store the actual damage panel/range from that call rather than resolving another unit renderer. Unrelated AI/secondary-target checks cannot overwrite the hovered target's capture.
+- Match the target by cell occupancy, including a large creature's non-origin cells, and keep the captured mouse cell for later validation. Scope hide invalidation to the owning hover controller.
+- Do not depend on activation of the optional native simple-tooltip host. The real parent canvas, native damage preview and battle UI must still be visible.
+- A newly activated TMP label with no generated glyphs now stays active and transparent for initialization instead of being repeatedly deactivated. Retain native font/material, glyph-bound layout and cursor positioning.
+- Add bounded, once-per-stage diagnostics for capture, native counter refusal, visibility rejection, calculation and text preparation. No gameplay changes or relaxed retaliation eligibility.
+- Build passed with zero errors/warnings. Arithmetic unchanged; native integration and visible text require the user's next gameplay test. This is not a confirmed stable release.
+
 ## 0.1.3 — 2026-10-10
 
 - Address the icon-only cursor panel reported in the 0.1.2 gameplay test: assign both the ordinary native tooltip font and its shared material.

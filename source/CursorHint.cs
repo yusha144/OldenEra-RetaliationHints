@@ -59,10 +59,10 @@ internal sealed class CursorHint
 
     internal bool Place(Vector2 mouse, float setting)
     {
-        if (!Root || !_parent || !_parent.gameObject.activeInHierarchy) { Hide(); return false; }
+        if (!Root || !_parent || !_parent.gameObject.activeInHierarchy) { Hide(); Plugin.Instance.TraceOnce("cursor-root-inactive", "Native cursor canvas root is inactive."); return false; }
         _visibility.alpha = 0;
         var canvas = _parent.GetComponentInParent<Canvas>();
-        if (!canvas || !canvas.isActiveAndEnabled || !canvas.rootCanvas.isActiveAndEnabled) { Hide(); return false; }
+        if (!canvas || !canvas.isActiveAndEnabled || !canvas.rootCanvas.isActiveAndEnabled) { Hide(); Plugin.Instance.TraceOnce("cursor-canvas-inactive", "Native cursor canvas is unavailable or disabled."); return false; }
         if (canvas.rootCanvas.renderMode == RenderMode.WorldSpace)
             throw new NotSupportedException("Native cursor layer is not a screen-space canvas");
         Camera camera = null;
@@ -83,8 +83,14 @@ internal sealed class CursorHint
         if (!float.IsFinite(setting)) setting = 1;
         float scale = Mathf.Clamp(Screen.height / 1080f, .8f, 2f) * Mathf.Clamp(setting, .7f, 1.8f);
         float maxWidth = Math.Min(480 * scale, Screen.width - 12 * scale);
-        if (_layoutDirty || scale != _layoutScale || maxWidth != _layoutMaxWidth)
-            Layout(scale, maxWidth);
+        if ((_layoutDirty || scale != _layoutScale || maxWidth != _layoutMaxWidth) && !Layout(scale, maxWidth))
+        {
+            // TMP may need its first canvas rebuild after activation. Keep the
+            // hidden root active for that frame instead of restarting OnEnable
+            // forever by hiding the GameObject on an unready text mesh.
+            Plugin.Instance.TraceOnce("text-preparing", "Waiting for the activated TMP label's first glyph mesh; root stays active and transparent.");
+            return false;
+        }
         var box = CursorPlacement.Place(Screen.width, Screen.height, mouse.x, mouse.y,
             _width, _height, scale);
         if (!box.Valid) { Hide(); return false; }
@@ -96,7 +102,7 @@ internal sealed class CursorHint
         return true;
     }
 
-    private void Layout(float scale, float maxWidth)
+    private bool Layout(float scale, float maxWidth)
     {
         float iconWidth = _icon.sprite ? 22 * scale : 0;
         float available = maxWidth - iconWidth - 18 * scale;
@@ -106,14 +112,14 @@ internal sealed class CursorHint
         // but only the generated glyph bounds determine the visible layout.
         _label.rectTransform.sizeDelta = new(maxWidth, 64 * scale);
         _label.rectTransform.anchoredPosition = Vector2.zero;
-        _label.ForceMeshUpdate(false, true);
-        var bounds = VisibleBounds();
+        _label.ForceMeshUpdate(true, true);
+        if (!TryVisibleBounds(out var bounds)) return false;
         float fit = Math.Min(1, Math.Min(available / bounds.size.x, 22 * scale / bounds.size.y));
         if (fit < 1)
         {
             _label.fontSize *= fit;
-            _label.ForceMeshUpdate(false, true);
-            bounds = VisibleBounds();
+            _label.ForceMeshUpdate(true, true);
+            if (!TryVisibleBounds(out bounds)) return false;
         }
         _width = Math.Min(maxWidth, Math.Max(80 * scale, bounds.size.x + iconWidth + 18 * scale));
         _height = Math.Max(32 * scale, bounds.size.y + 10 * scale);
@@ -123,19 +129,19 @@ internal sealed class CursorHint
         _icon.rectTransform.anchoredPosition = new(-_width / 2 + 16 * scale, 0);
         _label.rectTransform.anchoredPosition = new(-_width / 2 + 8 * scale + iconWidth - bounds.min.x, -bounds.center.y);
         _layoutScale = scale; _layoutMaxWidth = maxWidth; _layoutDirty = false;
+        return true;
     }
 
-    private Bounds VisibleBounds()
+    private bool TryVisibleBounds(out Bounds bounds)
     {
         _visibleGlyphs = 0;
         var info = _label.textInfo;
-        for (int i = 0; i < info.characterCount; i++)
-            if (info.characterInfo[i].isVisible) _visibleGlyphs++;
-        var bounds = _label.textBounds;
-        if (_visibleGlyphs == 0 || bounds.size.x <= 0 || bounds.size.y <= 0
-            || !float.IsFinite(bounds.size.x + bounds.size.y + bounds.center.x + bounds.center.y))
-            throw new InvalidOperationException($"Retaliation text produced no visible glyphs: '{_text}'");
-        return bounds;
+        if (info != null && info.characterInfo != null)
+            for (int i = 0; i < info.characterCount; i++)
+                if (info.characterInfo[i].isVisible) _visibleGlyphs++;
+        bounds = _label.textBounds;
+        return _visibleGlyphs > 0 && bounds.size.x > 0 && bounds.size.y > 0
+            && float.IsFinite(bounds.size.x + bounds.size.y + bounds.center.x + bounds.center.y);
     }
 
     internal void Hide() { if (_visibility) _visibility.alpha = 0; if (Root) Root.gameObject.SetActive(false); }
