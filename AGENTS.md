@@ -13,3 +13,5 @@
 - Build hash gate is mandatory because obfuscated names change across builds.
 - The user performs gameplay tests. Do not start, close or control the game. Validate the arithmetic and build locally; report those checks accurately and concisely.
 - Releases, history and backups stay local. Preserve installed DLL/config before updates.
+
+- The user subsequently reported that hints appear in new games, while old saves were unreliable; intermittent disappearance still occurs in new games. Treat this as an observation, not an established save-related cause or a requirement to discard saves. Version 0.1.5 only changes the chosen label to «Потери», retaining preemptive timing and unavailable states. Do not claim the intermittent display issue is fixed.

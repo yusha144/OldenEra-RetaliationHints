@@ -61,12 +61,12 @@ public sealed class RetaliationOverlay : MonoBehaviour
                 try
                 {
                     var loss = NativeForecast.Calculate(context, context.Damage);
-                    _hint.Set((loss.BeforeAttack ? "До атаки ~ " : "Ответка ~ ") + loss.Numbers, loss.Max > 0);
+                    _hint.Set((loss.BeforeAttack ? "Потери до атаки ~ " : "Потери ~ ") + loss.Numbers, loss.Max > 0);
                     Plugin.Instance.TraceOnce("loss-calculated", $"First casualty range: {loss.Numbers}, preemptive={loss.BeforeAttack}.");
                 }
                 catch (Exception error)
                 {
-                    _hint.Set("Ответка: расчёт недоступен", true);
+                    _hint.Set("Потери: расчёт недоступен", true);
                     Plugin.Instance.Report("Unsupported retaliation estimate", error);
                 }
             }

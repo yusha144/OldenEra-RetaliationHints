@@ -1,5 +1,11 @@
 # Changes
 
+## 0.1.5 — 2026-10-10
+
+- Replace the cursor label with the user's choice: «Потери». Retain «Потери до атаки» for preemptive retaliation and an explicit unavailable state.
+- Capture, calculation and rendering are unchanged. Validation for this text-only update is a release build.
+- The user reports that hints appear in new games while old saves were unreliable; intermittent disappearance still occurs in new games. This observation does not establish a save-related root cause. The release is not stable.
+
 ## 0.1.4 — 2026-10-10
 
 - The user reported no hint during an eligible melee preview. The 0.1.3 log confirms startup but contains neither a text preparation record nor a display exception; it does not identify the exact early rejection.
