@@ -70,7 +70,7 @@ public sealed class RetaliationOverlay : MonoBehaviour
             if (_hint.Place(Input.mousePosition, Plugin.Instance.TextScale.Value) && !_reportedPreview)
             {
                 _reportedPreview = true;
-                Plugin.Instance.Log.LogInfo("First retaliation hint attached beside the attack cursor on the native screen-space tooltip layer.");
+                Plugin.Instance.Log.LogInfo("First retaliation hint prepared beside attack cursor: " + _hint.Diagnostic);
             }
         }
         catch (Exception error) { Hide(); Plugin.Instance.Report("Retaliation display", error); }
