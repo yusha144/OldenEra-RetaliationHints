@@ -13,6 +13,7 @@ public sealed class RetaliationOverlay : MonoBehaviour
     private float _nextCalculation;
     private IntPtr _lastAttacker, _lastTarget, _lastAbility, _lastDestination, _lastCounter;
     private DamageRange _lastDamage;
+    private bool _lastCanCounter;
     private bool _reportedPreview;
 
     public RetaliationOverlay(IntPtr pointer) : base(pointer) { }
@@ -30,7 +31,7 @@ public sealed class RetaliationOverlay : MonoBehaviour
             if (!Plugin.Instance.Enabled.Value || !elb.ckia) { Hide(); return; }
             Plugin.Instance.TraceOnce("battle-update", "Retaliation display updater is running in a battle.");
             var context = PreviewCapture.Current;
-            if (context == null || !context.CanCounter) { Hide(); return; }
+            if (context == null) { Hide(); return; }
             if (!PreviewCapture.Same(elb.ckia.ckid, context.Hover)
                 || !PreviewCapture.Same(context.Hover.clcx, context.TargetHex)
                 || !PreviewCapture.Occupies(context.Defender, context.TargetHex)
@@ -63,7 +64,8 @@ public sealed class RetaliationOverlay : MonoBehaviour
             }
             if (_lastAttacker != context.Attacker.Pointer || _lastTarget != context.Defender.Pointer
                 || _lastAbility != context.Attack.Pointer || _lastDestination != (context.Destination?.Pointer ?? IntPtr.Zero)
-                || _lastCounter != (context.Counter?.Pointer ?? IntPtr.Zero) || _lastDamage != context.Damage) _nextCalculation = 0;
+                || _lastCounter != (context.Counter?.Pointer ?? IntPtr.Zero) || _lastDamage != context.Damage
+                || _lastCanCounter != context.CanCounter) _nextCalculation = 0;
             if (Time.unscaledTime >= _nextCalculation)
             {
                 _nextCalculation = Time.unscaledTime + .12f;
@@ -71,20 +73,23 @@ public sealed class RetaliationOverlay : MonoBehaviour
                 _lastAbility = context.Attack.Pointer;
                 _lastDestination = context.Destination?.Pointer ?? IntPtr.Zero;
                 _lastCounter = context.Counter?.Pointer ?? IntPtr.Zero; _lastDamage = context.Damage;
+                _lastCanCounter = context.CanCounter;
                 try
                 {
-                    var loss = NativeForecast.Calculate(context, context.Damage);
-                    _hint.Set((loss.BeforeAttack ? "Потери до атаки ~ " : "Потери ~ ") + loss.Numbers, loss.Max > 0);
-                    Plugin.Instance.TraceOnce("loss-calculated", $"First casualty range: {loss.Numbers}, preemptive={loss.BeforeAttack}.");
+                    var result = HintResult.ForPreview(context.CanCounter,
+                        () => NativeForecast.Calculate(context, context.Damage));
+                    _hint.Set(result.Text, result.Danger);
+                    Plugin.Instance.TraceOnce(context.CanCounter ? "loss-calculated" : "no-counter-shown",
+                        "First retaliation result: " + result.Text);
                 }
                 catch (ForecastUnavailableException error)
                 {
-                    _hint.Set("Потери: " + error.Message, true);
+                    _hint.Set(HintResult.Unavailable, true);
                     Plugin.Instance.TraceOnce("unsupported-" + error.Message, "Not simulated: " + error.Message);
                 }
                 catch (Exception error)
                 {
-                    _hint.Set("Потери: расчёт недоступен", true);
+                    _hint.Set(HintResult.Unavailable, true);
                     Plugin.Instance.Report("Unsupported retaliation estimate", error);
                 }
             }

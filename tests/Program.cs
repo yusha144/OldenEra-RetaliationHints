@@ -21,6 +21,26 @@ var none = ForecastMath.Evaluate(attacker, defender, false, false,
 Equal(new LossRange(0, 0, false), none, "no counter");
 Console.WriteLine("PASS: exhausted or prohibited retaliation");
 
+// Switch between the same target's eligible/ineligible attacks without evaluating
+// unsupported on-hit effects when the native game already disallows a counter.
+int calculations = 0;
+foreach (bool allowed in new[] { true, false, true, false })
+{
+    var hint = HintResult.ForPreview(allowed, () => { calculations++; return new(1, 3, false); });
+    Equal(allowed ? "Потери ~ 1-3" : "Без контрудара", hint.Text, "native counter decision selects text");
+    Equal(allowed, hint.Danger, "no-counter status is neutral");
+}
+Equal(2, calculations, "disabled retaliation bypasses damage/effect calculation");
+Equal("Потери ~ 0", HintResult.ForPreview(true, () => new(0, 0, false)).Text,
+    "counter with zero casualties is not an absent counter");
+Equal("Потери до атаки ~ 2-4", HintResult.ForPreview(true, () => new(2, 4, true)).Text,
+    "preemptive counter still reports casualties");
+bool unavailable = false;
+try { HintResult.ForPreview(true, () => throw new ForecastUnavailableException("unsupported effect")); }
+catch (ForecastUnavailableException) { unavailable = true; }
+Equal(true, unavailable, "unsupported calculation never becomes no counter");
+Console.WriteLine("PASS: native no-counter status, transitions, zero casualties and unavailable estimates");
+
 var normal = ForecastMath.Evaluate(attacker, defender, true, false,
     (source, _, counter) => counter ? new(source.Count * 2, source.Count * 4) : new(20, 50));
 Equal(new LossRange(1, 3, false), normal, "surviving 5-8 enemies retaliate");

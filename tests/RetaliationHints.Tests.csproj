@@ -10,5 +10,6 @@
     <Compile Include="../source/PreviewKey.cs" Link="PreviewKey.cs" />
     <Compile Include="../source/EffectContent.cs" Link="EffectContent.cs" />
     <Compile Include="../source/HintBinding.cs" Link="HintBinding.cs" />
+    <Compile Include="../source/HintResult.cs" Link="HintResult.cs" />
   </ItemGroup>
 </Project>

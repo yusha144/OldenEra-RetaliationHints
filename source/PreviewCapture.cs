@@ -69,11 +69,11 @@ internal static class PreviewCapture
     {
         if (_sample == null || _decision == null || !_sample.Key.Matches(_decision.Key)) return;
         var context = _decision.Context;
-        if (!context.CanCounter) { Current = null; return; }
         context.TargetView = _sample.View; context.Damage = _sample.Damage;
         Current = context;
-        Plugin.Instance.TraceMatch(context.Attacker, context.Defender, true, true);
-        Plugin.Instance.TraceOnce("counter-captured", $"Paired native preview: {context.Attacker.ckyo} -> {context.Defender.ckyo}.");
+        Plugin.Instance.TraceMatch(context.Attacker, context.Defender, context.CanCounter, true);
+        Plugin.Instance.TraceOnce(context.CanCounter ? "counter-captured" : "no-counter-captured",
+            $"Paired native preview: {context.Attacker.ckyo} -> {context.Defender.ckyo}, counter={context.CanCounter}.");
     }
 
     [HarmonyPatch(typeof(BhBattleUnitInfoView), nameof(BhBattleUnitInfoView.bghr))]

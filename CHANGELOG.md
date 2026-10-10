@@ -1,5 +1,14 @@
 # Changes
 
+## 0.1.8 — 2026-10-10
+
+- User confirmed 0.1.7 displays correctly in every new battle.
+- Publish both allowed and disallowed native counter decisions, still paired with the actual selected target's visible damage forecast. Show «Без контрудара» on native refusal without evaluating on-hit mechanics or damage.
+- Keep numeric ordinary/preemptive estimates for allowed counters. Zero casualties and unavailable calculations are never mislabeled as no counter. Counter eligibility changes immediately invalidate the cached display.
+- Replace detailed unavailable text with «Потери: нет расчёта»; retain bounded diagnostic reasons in the log.
+- Health/vampirism arithmetic and per-battle widget lifecycle are unchanged. Self vampirism already includes healing and temporary growth before an ordinary counter, within the documented single-source/single-target limits.
+- Release build passed with zero warnings/errors. Existing checks and one focused status regression group passed: allowed/refused transitions, bypassed effect calculation, zero casualties, preemptive text and unavailable estimates. New live labels remain for the user's test.
+
 ## 0.1.7 — 2026-10-10
 
 - Fix false on-hit-effect rejection for normalized empty side-dealer configs. Inspect actual buffs, mechanics and damage to a configured target; allocation, pattern metadata and the default statDmgMult=1 alone do not block ordinary attacks.
