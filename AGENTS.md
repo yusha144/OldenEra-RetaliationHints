@@ -1,5 +1,11 @@
 # Retaliation Hints — isolated mod
 
+## Preserved stable 0.1.8
+
+The user requested preserving the current 0.1.8 as stable on 2026-10-10, just like the other two mods. Frozen sibling directory `../OldenEra-RetaliationHints-STABLE-0.1.8`, archive `../OldenEra-RetaliationHints-STABLE-0.1.8.zip` and adjacent `.sha256`; local tag `stable/v0.1.8`. Never move/delete/replace this tag or the frozen baseline during ordinary development. `plugin/OldenEra.RetaliationHints.dll` is the exact accepted installed binary, not a new rebuild. Future development belongs in this working project with a higher version; preserve the installed DLL/config before updates. Recovery uses the per-file manifest and includes source, tests, actual settings, loader package/config, instructions and portable Git history. Keep all three mods independent and backups local. Stable preservation does not establish exhaustive combat or multiplayer validation. See STABLE-BASELINE.md.
+
+## Development rules
+
 - GUID `local.oldenera.retaliationhints`; assembly `OldenEra.RetaliationHints.dll`.
 - Preserve Map Hints and Skill Synergies independently; do not alter, build, disable or reinstall either.
 - Read only an actual native battle hover forecast. Do not send battle commands, modify live units, call event execution, consume the battle RNG or write saves.
