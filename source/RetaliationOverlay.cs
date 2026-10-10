@@ -19,6 +19,7 @@ public sealed class RetaliationOverlay : MonoBehaviour
     {
         try
         {
+            PreviewCapture.ObserveBattle();
             if (!Plugin.Instance.Enabled.Value || !elb.ckia) { Hide(); return; }
             Plugin.Instance.TraceOnce("battle-update", "Retaliation display updater is running in a battle.");
             var context = PreviewCapture.Current;
@@ -64,6 +65,11 @@ public sealed class RetaliationOverlay : MonoBehaviour
                     _hint.Set((loss.BeforeAttack ? "Потери до атаки ~ " : "Потери ~ ") + loss.Numbers, loss.Max > 0);
                     Plugin.Instance.TraceOnce("loss-calculated", $"First casualty range: {loss.Numbers}, preemptive={loss.BeforeAttack}.");
                 }
+                catch (ForecastUnavailableException error)
+                {
+                    _hint.Set("Потери: " + error.Message, true);
+                    Plugin.Instance.TraceOnce("unsupported-" + error.Message, "Not simulated: " + error.Message);
+                }
                 catch (Exception error)
                 {
                     _hint.Set("Потери: расчёт недоступен", true);
@@ -84,5 +90,5 @@ public sealed class RetaliationOverlay : MonoBehaviour
         _hint?.Hide(); _nextCalculation = 0;
         if (reason != null) Plugin.Instance.TraceOnce(reason, "Captured preview hidden: " + reason);
     }
-    public void OnDestroy() { _hint?.Destroy(); PreviewCapture.Current = null; }
+    public void OnDestroy() { _hint?.Destroy(); PreviewCapture.Reset(); }
 }

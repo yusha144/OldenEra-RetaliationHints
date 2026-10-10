@@ -15,3 +15,9 @@
 - Releases, history and backups stay local. Preserve installed DLL/config before updates.
 
 - The user subsequently reported that hints appear in new games, while old saves were unreliable; intermittent disappearance still occurs in new games. Treat this as an observation, not an established save-related cause or a requirement to discard saves. Version 0.1.5 only changes the chosen label to «Потери», retaining preemptive timing and unavailable states. Do not claim the intermittent display issue is fixed.
+
+## 0.1.6 expansion
+
+The user requested broader mechanics after reporting missing hints for the Necropolis ghost with vampirism/temp growth, and also Temple cavalry. They speculate about restarting/new battles; no save/restart root cause is established. This request authorizes arithmetic changes beyond the earlier display-only fixes.
+
+Version 0.1.6 pairs the actual native target view/damage and native counter decision by battle/selection/frame without a `bgdy`-only scope, and clears state on battle changes. It supports temporary creatures and bounded single-target self vampirism; known unsupported conditions produce an explicit reason. Preserve the approximate `~` label and do not promise passive event chains, luck, reflection or all healing variants. At most 257 surviving opening rolls are evaluated with healing. No native attack or heal execution is allowed. Build and focused pure tests pass; gameplay visibility/correctness are still for the user's test, not confirmed fixed.

@@ -55,6 +55,52 @@ catch (ArgumentOutOfRangeException) { rejected = true; }
 Equal(true, rejected, "unknown/invalid damage must not turn into zero losses");
 Console.WriteLine("PASS: invalid forecasts fail explicitly");
 
+// A ghost's added creatures are part of the next counterattack's target stack.
+var ghost = new StackHealth(5, 10, 4);
+var grown = ghost.Heal(18, int.MaxValue, true);
+Equal(new StackHealth(7, 10, 2, 2, true), grown, "vampirism adds temporary creatures");
+Equal(new StackHealth(6, 10, 10, 1, true), grown.Hit(2), "temporary wounded top dies first");
+Equal(new StackHealth(5, 10, 10), grown.Hit(12), "temporary pool depleted");
+Equal(new StackHealth(4, 10, 10), grown.Hit(22), "damage reaches original creatures");
+Equal(new StackHealth(5, 10, 10), ghost.Heal(999, 50, false), "resurrection cap");
+var withHealing = ForecastMath.Evaluate(ghost, defender, true, false,
+    (_, _, counter) => counter ? new(8, 18) : new(18, 18),
+    (state, dealt) => state.Heal(dealt, int.MaxValue, true));
+Equal(new LossRange(1, 2, false), withHealing, "losses counted from healed stack, not net army growth");
+var woundedHealed = ForecastMath.Evaluate(new(5, 10, 2), defender, true, false,
+    (_, _, counter) => counter ? new(5, 5) : new(8, 8),
+    (state, dealt) => state.Heal(dealt, 50, false));
+Equal(new LossRange(0, 0, false), woundedHealed, "healing prevents wounded creature death");
+
+// Both opening endpoints would give zero losses here; a middle roll gives one.
+var middleRoll = ForecastMath.Evaluate(new(3, 10, 10), defender, true, false,
+    (_, _, counter) => counter ? new(3, 3) : new(4, 14),
+    (state, dealt) => state.Heal(dealt, int.MaxValue, true));
+var healingOracle = Enumerable.Range(4, 11).Select(dealt =>
+    (int)Math.Ceiling((30 + dealt) / 10.0) - (int)Math.Ceiling((30 + dealt - 3) / 10.0)).ToArray();
+Equal(new LossRange(healingOracle.Min(), healingOracle.Max(), false), middleRoll, "all intermediate heal rolls");
+Equal(1, middleRoll.Max, "intermediate casualty maximum");
+Equal(new LossRange(2, 4, true), ForecastMath.Evaluate(attacker, defender, true, true,
+    (_, _, _) => new(20, 40), (_, _) => throw new Exception("No healing before a preemptive counter")),
+    "preemptive hit precedes vampirism");
+Equal(new LossRange(0, 0, false), ForecastMath.Evaluate(ghost, defender, true, false,
+    (_, _, _) => new(100, 10000), (_, _) => throw new Exception("No counter after certain kill")),
+    "lethal opening bypasses healing work limit");
+bool limited = false;
+try { ForecastMath.Evaluate(ghost, new(1000, 10, 10), true, false,
+    (_, _, _) => new(0, 1000), (state, _) => state); }
+catch (ForecastUnavailableException) { limited = true; }
+Equal(true, limited, "excessive healing range is unavailable rather than sampled");
+Console.WriteLine("PASS: temporary creatures, healing caps, intermediate rolls and preemptive order");
+
+var selection = new PreviewKey((IntPtr)1, (IntPtr)2, (IntPtr)3, (IntPtr)4, (IntPtr)5, (IntPtr)6, 42);
+Equal(true, selection.Matches(selection), "callbacks for one visible forecast can join in either order");
+foreach (var stale in new[] { selection with { Battle = (IntPtr)9 }, selection with { Hover = (IntPtr)9 },
+    selection with { Attacker = (IntPtr)9 }, selection with { Target = (IntPtr)9 },
+    selection with { Ability = (IntPtr)9 }, selection with { Cell = (IntPtr)9 }, selection with { Frame = 41 } })
+    Equal(false, selection.Matches(stale), "old battle/target/direction/frame must not join new damage");
+Console.WriteLine("PASS: preview selection identity rejects stale data");
+
 // The hint follows the attack-direction cursor and flips at edges without covering
 // its hotspot. These are screen-pixel checks, not a claim of live Unity rendering.
 foreach (var screen in new[] { (Width: 1280f, Height: 720f), (Width: 2560f, Height: 1440f) })
@@ -85,5 +131,7 @@ if (args.Length > 0)
     Equal(true, patterns.TryGet("attack_swirl_with_target_x50", out float half), "half-strength primary hit");
     Equal(.5f, half, "half-strength multiplier");
     Equal(false, patterns.TryGet("unknown-pattern", out _), "unknown pattern");
+    Equal(true, patterns.IsSingleDamageCell("attack_single_x100"), "ghost's single-target life steal");
+    Equal(false, patterns.IsSingleDamageCell("attack_swipe_x100_x100"), "multi-target healing cannot use one victim");
     Console.WriteLine($"PASS: installed game's counterattack patterns ({patterns.Count} supported patterns loaded)");
 }

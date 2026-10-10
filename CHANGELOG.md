@@ -1,5 +1,14 @@
 # Changes
 
+## 0.1.6 — 2026-10-10
+
+- Join the actual native target panel and counter eligibility by battle, hover, caster, target, ability, cell and frame. Remove dependency on a single `bgdy` display entry; reset on battle identity changes. Retain native counter refusal and cursor visuals.
+- Support existing temporary creatures and single-target self vampirism: heal modifiers, immunity checks, native healing caps, temporary growth, capped real resurrection, and preemptive ordering. Count casualties from the healed stack rather than net change in army size.
+- Sweep intermediate opening damage for healing (at most 257 surviving rolls); explicitly reject wider ranges instead of sampling an unreliable bound or stalling the game. Lethal rolls need no counter calculation.
+- Show concise reasons for recognized unsupported mechanics, death protection, direct on-hit buffs and special healing. Other passive event chains, luck, reflection and movement-triggered effects remain outside the current-state estimate.
+- Add bounded per-battle/matchup pairing diagnostics. The user also reported missing previews for Temple cavalry and before the ghost's first hit; this is distinct from temporary-stack arithmetic. Save/restart causality is unconfirmed.
+- Release build: zero errors/warnings. Focused pure health, healing, selection identity, cursor and installed-pattern checks pass. Native integration and intermittent visibility still require the user's gameplay test; not a stable release.
+
 ## 0.1.5 — 2026-10-10
 
 - Replace the cursor label with the user's choice: «Потери». Retain «Потери до атаки» for preemptive retaliation and an explicit unavailable state.

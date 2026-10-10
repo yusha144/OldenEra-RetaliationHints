@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 
 namespace OldenEra.RetaliationHints;
 
-[BepInPlugin(Id, "Olden Era Retaliation Hints", "0.1.5")]
+[BepInPlugin(Id, "Olden Era Retaliation Hints", "0.1.6")]
 public sealed class Plugin : BasePlugin
 {
     internal const string Id = "local.oldenera.retaliationhints";
@@ -17,6 +17,14 @@ public sealed class Plugin : BasePlugin
     private Harmony _patches;
     private readonly HashSet<string> _reported = new();
     private readonly HashSet<string> _traced = new();
+    private readonly HashSet<string> _matchups = new();
+
+    internal void TraceMatch(Hex.Session.Battle.Unit attacker, Hex.Session.Battle.Unit target, bool allowed, bool paired)
+    {
+        string key = $"{elb.lastBattleId}:{attacker.ckyo}->{target.ckyo}:{allowed}:{paired}";
+        if (_matchups.Count < 48 && _matchups.Add(key))
+            Log.LogInfo($"Preview pair [{key}]: battle={elb.lastBattleId}, temporary={attacker.cmwp.tempFullStacks}/{target.cmwp.tempFullStacks}.");
+    }
 
     public override void Load()
     {
@@ -32,7 +40,7 @@ public sealed class Plugin : BasePlugin
             _patches = new Harmony(Id);
             _patches.PatchAll(typeof(Plugin).Assembly);
             AddComponent<RetaliationOverlay>();
-            Log.LogInfo($"Retaliation Hints 0.1.5 loaded; {Patterns.Count} supported attack patterns. Capture scoped to native hover preview; cursor text supports deferred font initialization. Current-state estimate, excluding luck and triggered effects; no battle commands or RNG calls.");
+            Log.LogInfo($"Retaliation Hints 0.1.6 loaded; {Patterns.Count} supported attack patterns. Native damage/counter pairing by battle, selection and frame; temporary stacks and single-target self vampirism supported. Current-state estimate, excluding luck and other triggered effects; no battle commands or RNG calls.");
         }
         catch (Exception error)
         {

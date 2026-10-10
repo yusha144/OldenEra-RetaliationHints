@@ -6,6 +6,8 @@ namespace OldenEra.RetaliationHints;
 internal sealed class AttackPatterns
 {
     private readonly Dictionary<string, float> _primary = new();
+    private readonly HashSet<string> _single = new();
+    internal bool IsSingleDamageCell(string sid) => sid != null && _single.Contains(sid);
     internal int Count => _primary.Count;
     internal bool TryGet(string sid, out float multiplier)
     {
@@ -15,6 +17,7 @@ internal sealed class AttackPatterns
     internal void Load(string archive)
     {
         _primary.Clear();
+        _single.Clear();
         using var zip = ZipFile.OpenRead(archive);
         foreach (var entry in zip.Entries.Where(e => e.FullName.StartsWith("DB/attack_patterns/", StringComparison.Ordinal) && e.FullName.EndsWith(".json")))
         {
@@ -22,12 +25,13 @@ internal sealed class AttackPatterns
             using var doc = JsonDocument.Parse(reader.ReadToEnd());
             foreach (var pattern in doc.RootElement.GetProperty("array").EnumerateArray())
             {
-                float? value = null; bool valid = true;
+                float? value = null; bool valid = true, single = true;
                 foreach (var rotation in pattern.GetProperty("rotations").EnumerateArray())
                 {
                     int x = rotation.GetProperty("charX").GetInt32(), y = rotation.GetProperty("charY").GetInt32();
                     int width = rotation.GetProperty("dimX").GetInt32();
                     var cells = rotation.GetProperty("damagePattern");
+                    if (cells.EnumerateArray().Count(c => c.GetSingle() > 0) != 1) single = false;
                     int index = y * width + x;
                     if (index < 0 || index >= cells.GetArrayLength()) { valid = false; break; }
                     float current = cells[index].GetSingle();
@@ -35,7 +39,12 @@ internal sealed class AttackPatterns
                     { valid = false; break; }
                     value = current;
                 }
-                if (valid && value.HasValue) _primary[pattern.GetProperty("sid").GetString()] = value.Value;
+                if (valid && value.HasValue)
+                {
+                    string sid = pattern.GetProperty("sid").GetString();
+                    _primary[sid] = value.Value;
+                    if (single) _single.Add(sid);
+                }
             }
         }
     }
