@@ -6,5 +6,6 @@
   <ItemGroup>
     <Compile Include="../source/ForecastMath.cs" Link="ForecastMath.cs" />
     <Compile Include="../source/AttackPatterns.cs" Link="AttackPatterns.cs" />
+    <Compile Include="../source/CursorPlacement.cs" Link="CursorPlacement.cs" />
   </ItemGroup>
 </Project>

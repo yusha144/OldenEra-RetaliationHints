@@ -55,6 +55,24 @@ catch (ArgumentOutOfRangeException) { rejected = true; }
 Equal(true, rejected, "unknown/invalid damage must not turn into zero losses");
 Console.WriteLine("PASS: invalid forecasts fail explicitly");
 
+// The hint follows the attack-direction cursor and flips at edges without covering
+// its hotspot. These are screen-pixel checks, not a claim of live Unity rendering.
+foreach (var screen in new[] { (Width: 1280f, Height: 720f), (Width: 2560f, Height: 1440f) })
+{
+    float scale = Math.Clamp(screen.Height / 1080, .8f, 2f);
+    foreach (var mouse in new[] { (X: screen.Width / 2, Y: screen.Height / 2),
+        (X: screen.Width - 2, Y: screen.Height - 2), (X: 2f, Y: 2f), (X: screen.Width - 2, Y: 2f) })
+    {
+        var box = CursorPlacement.Place(screen.Width, screen.Height, mouse.X, mouse.Y, 240 * scale, 32 * scale, scale);
+        Equal(true, box.Valid && box.X >= 0 && box.Y >= 0 && box.X + box.Width <= screen.Width
+            && box.Y + box.Height <= screen.Height, "cursor hint fits viewport");
+        Equal(false, mouse.X >= box.X - 16 * scale && mouse.X <= box.X + box.Width + 16 * scale
+            && mouse.Y >= box.Y - 16 * scale && mouse.Y <= box.Y + box.Height + 16 * scale, "sword hotspot stays clear");
+    }
+}
+Equal(false, CursorPlacement.Place(1920, 1080, -10, 200, 240, 32, 1).Valid, "outside game viewport");
+Console.WriteLine("PASS: cursor placement and screen-edge flips");
+
 if (args.Length > 0)
 {
     var patterns = new AttackPatterns(); patterns.Load(args[0]);

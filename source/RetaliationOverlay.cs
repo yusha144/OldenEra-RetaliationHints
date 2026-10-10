@@ -1,14 +1,16 @@
 using Hex.Session.Battle;
+using Hex.UI;
 using UnityEngine;
 
 namespace OldenEra.RetaliationHints;
 
 public sealed class RetaliationOverlay : MonoBehaviour
 {
-    private UnitBarHint _hint;
-    private BhBattleUnitInfoView _bar;
+    private CursorHint _hint;
+    private BhCursorTooltips _cursorUi;
     private float _nextCalculation;
-    private IntPtr _lastAttacker, _lastTarget, _lastAbility;
+    private IntPtr _lastAttacker, _lastTarget, _lastAbility, _lastDestination, _lastCounter;
+    private DamageRange _lastDamage;
     private bool _reportedPreview;
 
     public RetaliationOverlay(IntPtr pointer) : base(pointer) { }
@@ -32,20 +34,28 @@ public sealed class RetaliationOverlay : MonoBehaviour
             if (!forecast || !forecast.gameObject.activeInHierarchy || !forecast.cg
                 || !forecast.cg.gameObject.activeInHierarchy || forecast.cg.alpha < .01f)
             { Hide(); return; }
-            var bar = context.Attacker.cmww?.TryCast<eml>()?.ckom?.cmot;
-            if (!bar || !bar.gameObject.activeInHierarchy || !bar.count || !bar.count.textMesh)
+            var battleUi = BattleUIController.me;
+            if (!battleUi || !battleUi.gameObject.activeInHierarchy || battleUi.ccgc != TypeBattleUI.Normal)
             { Hide(); return; }
-            if (!_bar || _bar.Pointer != bar.Pointer || _hint == null || !_hint.Root)
+            var cursorUi = battleUi.cszk;
+            if (!cursorUi || !cursorUi.gameObject.activeInHierarchy || !cursorUi.rootCanvasRect
+                || !cursorUi.simpleTooltip || !cursorUi.simpleTooltip.targetsText)
+            { Hide(); return; }
+            if (!_cursorUi || _cursorUi.Pointer != cursorUi.Pointer || _hint == null || !_hint.Root)
             {
-                _hint?.Destroy(); _bar = bar; _hint = new(bar); _nextCalculation = 0;
+                _hint?.Destroy(); _cursorUi = cursorUi;
+                _hint = new(cursorUi, forecast.killedSquadsIcon); _nextCalculation = 0;
             }
             if (_lastAttacker != context.Attacker.Pointer || _lastTarget != context.Defender.Pointer
-                || _lastAbility != context.Attack.Pointer) _nextCalculation = 0;
+                || _lastAbility != context.Attack.Pointer || _lastDestination != (context.Destination?.Pointer ?? IntPtr.Zero)
+                || _lastCounter != (context.Counter?.Pointer ?? IntPtr.Zero) || _lastDamage != sample.Damage) _nextCalculation = 0;
             if (Time.unscaledTime >= _nextCalculation)
             {
                 _nextCalculation = Time.unscaledTime + .12f;
                 _lastAttacker = context.Attacker.Pointer; _lastTarget = context.Defender.Pointer;
                 _lastAbility = context.Attack.Pointer;
+                _lastDestination = context.Destination?.Pointer ?? IntPtr.Zero;
+                _lastCounter = context.Counter?.Pointer ?? IntPtr.Zero; _lastDamage = sample.Damage;
                 try
                 {
                     var loss = NativeForecast.Calculate(context, sample.Damage);
@@ -57,10 +67,10 @@ public sealed class RetaliationOverlay : MonoBehaviour
                     Plugin.Instance.Report("Unsupported retaliation estimate", error);
                 }
             }
-            if (_hint.Place(Plugin.Instance.TextScale.Value) && !_reportedPreview)
+            if (_hint.Place(Input.mousePosition, Plugin.Instance.TextScale.Value) && !_reportedPreview)
             {
                 _reportedPreview = true;
-                Plugin.Instance.Log.LogInfo("First retaliation hint placed with verified screen dimensions.");
+                Plugin.Instance.Log.LogInfo("First retaliation hint attached beside the attack cursor on the native screen-space tooltip layer.");
             }
         }
         catch (Exception error) { Hide(); Plugin.Instance.Report("Retaliation display", error); }
