@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 
 namespace OldenEra.RetaliationHints;
 
-[BepInPlugin(Id, "Olden Era Retaliation Hints", "0.1.8")]
+[BepInPlugin(Id, "Olden Era Retaliation Hints", "0.1.9")]
 public sealed class Plugin : BasePlugin
 {
     internal const string Id = "local.oldenera.retaliationhints";
@@ -46,7 +46,7 @@ public sealed class Plugin : BasePlugin
             _patches = new Harmony(Id);
             _patches.PatchAll(typeof(Plugin).Assembly);
             AddComponent<RetaliationOverlay>();
-            Log.LogInfo($"Retaliation Hints 0.1.8 loaded; {Patterns.Count} supported attack patterns. Native counter refusal shown as a compact no-counter status; unavailable reasons logged only. Per-battle display binding, native damage/counter pairing and bounded self vampirism retained. Current-state estimate; no battle commands or RNG calls.");
+            Log.LogInfo($"Retaliation Hints 0.1.9 by yusha144 loaded; {Patterns.Count} supported attack patterns. Native counter refusal shown as a compact no-counter status; unavailable reasons logged only. Per-battle display binding, native damage/counter pairing and bounded self vampirism retained. Current-state estimate; no battle commands or RNG calls.");
         }
         catch (Exception error)
         {
@@ -72,3 +72,4 @@ public sealed class Plugin : BasePlugin
         return Convert.ToHexString(hash.ComputeHash(stream)) == expected;
     }
 }
+

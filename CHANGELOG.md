@@ -1,5 +1,11 @@
 # Changes
 
+## 0.1.9 — 2026-10-10
+
+- Credit yusha144 in assembly metadata, README and startup log.
+- Included in the shared BAT installer distribution. No changes to casualty arithmetic, supported effects, labels, capture or battle lifecycle.
+- Stable 0.1.8 remains frozen. Live game testing belongs to the user.
+
 ## 0.1.8 — 2026-10-10
 
 - User confirmed 0.1.7 displays correctly in every new battle.

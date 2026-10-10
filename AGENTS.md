@@ -1,5 +1,9 @@
 # Retaliation Hints — isolated mod
 
+## Distribution update 0.1.9
+
+The user explicitly requested author yusha144 and an easy combined installer for all three mods. This authorizes coordinated packaging despite older task-specific isolation instructions below. Version 0.1.9 changes attribution/version only; no battle arithmetic or UI logic. The accepted exact 0.1.8 DLL remains in the frozen baseline, while the working plugin folder now tracks 0.1.9. Preserve stable tags, archives and baseline directories. No new Retaliation hotkey was added.
+
 ## Preserved stable 0.1.8
 
 The user requested preserving the current 0.1.8 as stable on 2026-10-10, just like the other two mods. Frozen sibling directory `../OldenEra-RetaliationHints-STABLE-0.1.8`, archive `../OldenEra-RetaliationHints-STABLE-0.1.8.zip` and adjacent `.sha256`; local tag `stable/v0.1.8`. Never move/delete/replace this tag or the frozen baseline during ordinary development. `plugin/OldenEra.RetaliationHints.dll` is the exact accepted installed binary, not a new rebuild. Future development belongs in this working project with a higher version; preserve the installed DLL/config before updates. Recovery uses the per-file manifest and includes source, tests, actual settings, loader package/config, instructions and portable Git history. Keep all three mods independent and backups local. Stable preservation does not establish exhaustive combat or multiplayer validation. See STABLE-BASELINE.md.
