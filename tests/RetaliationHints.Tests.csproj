@@ -8,5 +8,7 @@
     <Compile Include="../source/AttackPatterns.cs" Link="AttackPatterns.cs" />
     <Compile Include="../source/CursorPlacement.cs" Link="CursorPlacement.cs" />
     <Compile Include="../source/PreviewKey.cs" Link="PreviewKey.cs" />
+    <Compile Include="../source/EffectContent.cs" Link="EffectContent.cs" />
+    <Compile Include="../source/HintBinding.cs" Link="HintBinding.cs" />
   </ItemGroup>
 </Project>

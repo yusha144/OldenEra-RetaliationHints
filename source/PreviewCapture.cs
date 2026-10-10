@@ -28,6 +28,7 @@ internal static class PreviewCapture
     private static Decision _decision;
     private static IntPtr _battle;
     private static int _battleId;
+    internal static int BattleGeneration { get; private set; }
     internal static Context Current;
     internal static bool Same(Il2CppObjectBase a, Il2CppObjectBase b) => a != null && b != null && a.Pointer == b.Pointer;
 
@@ -36,7 +37,10 @@ internal static class PreviewCapture
     {
         var battle = elb.ckia?.ckic?.Pointer ?? IntPtr.Zero;
         if (battle != _battle || elb.lastBattleId != _battleId)
-        { Reset(); _battle = battle; _battleId = elb.lastBattleId; }
+        {
+            Reset(); _battle = battle; _battleId = elb.lastBattleId; BattleGeneration++;
+            Plugin.Instance.BeginBattleDiagnostics(_battleId);
+        }
     }
     private static PreviewKey Key(eof hover, Unit attacker, Unit target, eib attack) =>
         new(_battle, hover.Pointer, attacker.Pointer, target.Pointer, attack.Pointer,

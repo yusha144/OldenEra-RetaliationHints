@@ -23,7 +23,7 @@ internal static class NativeForecast
             CheckDirectEffects(context.Attack);
             var dealer = context.Attack.cjuf?.data;
             if (!string.IsNullOrEmpty(dealer?.buff?.sid) || !string.IsNullOrEmpty(dealer?.sideBuff?.sid)
-                || context.Attack.cjuj.selfDealer != null || context.Attack.cjuj.allyDealer != null
+                || HasSideEffect(context.Attack.cjug?.data) || HasSideEffect(context.Attack.cjuh?.data)
                 || !string.IsNullOrEmpty(context.Attack.cjuj.tempSelfBuff))
                 throw Unavailable("эффект после попадания");
         }
@@ -47,6 +47,23 @@ internal static class NativeForecast
             cache[(sourceHealth, targetHealth)] = range;
             return range;
         }, healing);
+    }
+
+    private static bool HasSideEffect(CastDealerConfig data)
+    {
+        if (data == null) return false;
+        // The game normalizes missing side dealers into allocated empty configs.
+        // Pattern/target metadata alone does not deal damage or apply an effect.
+        return EffectContent.HasPayload(data.buff?.sid, data.sideBuff?.sid,
+            data.targetMechanics?.Length > 0, data.damageTarget_,
+            data.minBaseDmg, data.maxBaseDmg, data.minStackDmg, data.maxStackDmg,
+            data.minDamagePerEnergy, data.maxDamagePerEnergy,
+            data.minDamagePerEnergyLevel, data.maxDamagePerEnergyLevel,
+            data.minStackPercentDmg, data.maxStackPercentDmg, data.minPercentDmg, data.maxPercentDmg,
+            data.minStatDmg, data.maxStatDmg, data.minBuffNumDmg, data.maxBuffNumDmg,
+            data.minBuffNumStackDmg, data.maxBuffNumStackDmg, data.minDebuffNumDmg,
+            data.maxDebuffNumDmg, data.minDebuffNumStackDmg, data.maxDebuffNumStackDmg,
+            data.levelDmg, data.statDmgMult);
     }
 
     // Reject direct on-hit mechanics we cannot simulate, rather than omitting a

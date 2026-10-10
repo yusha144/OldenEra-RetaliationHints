@@ -101,6 +101,31 @@ foreach (var stale in new[] { selection with { Battle = (IntPtr)9 }, selection w
     Equal(false, selection.Matches(stale), "old battle/target/direction/frame must not join new damage");
 Console.WriteLine("PASS: preview selection identity rejects stale data");
 
+// Runtime-normalized empty dealers exist even on plain attacks. Native defaults
+// include statDmgMult=1: presence and nonzero multiplier alone must not veto them.
+foreach (string target in new string[] { null, "", "none" })
+    Equal(false, EffectContent.HasPayload("", null, false, target, 0, 0, 1),
+        "empty side dealer with default multiplier still permits casualty calculation");
+Equal(true, EffectContent.HasPayload("slow", null, false, "none", 0, 0, 1), "actual on-hit buff");
+Equal(true, EffectContent.HasPayload(null, null, true, "none", 0), "actual side mechanic");
+Equal(true, EffectContent.HasPayload(null, null, false, "self", 0, 10, 1), "actual side damage");
+Console.WriteLine("PASS: empty normalized side-dealers do not block ordinary attacks");
+
+// Three battles may reuse the same pooled host, canvas and fonts. Each battle
+// must receive a fresh widget; updates within that battle must reuse its widget.
+var bound = default(HintBinding);
+int widgets = 0;
+foreach (int generation in new[] { 1, 1, 2, 2, 3, 3 })
+{
+    var wanted = new HintBinding(generation, (IntPtr)10, (IntPtr)20, (IntPtr)30, (IntPtr)40);
+    if (bound != wanted) { bound = wanted; widgets++; }
+}
+Equal(3, widgets, "pooled UI must rebind in every subsequent battle");
+Equal(false, bound == (bound with { Parent = (IntPtr)21 }), "canvas replaced within battle");
+Equal(false, bound == (bound with { Font = (IntPtr)31 }), "font replaced within battle");
+Equal(false, bound == (bound with { Material = (IntPtr)41 }), "font material replaced within battle");
+Console.WriteLine("PASS: successive battles and replaced display resources invalidate binding");
+
 // The hint follows the attack-direction cursor and flips at edges without covering
 // its hotspot. These are screen-pixel checks, not a claim of live Unity rendering.
 foreach (var screen in new[] { (Width: 1280f, Height: 720f), (Width: 2560f, Height: 1440f) })

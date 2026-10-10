@@ -1,5 +1,13 @@
 # Changes
 
+## 0.1.7 — 2026-10-10
+
+- Fix false on-hit-effect rejection for normalized empty side-dealer configs. Inspect actual buffs, mechanics and damage to a configured target; allocation, pattern metadata and the default statDmgMult=1 alone do not block ordinary attacks.
+- Recreate the hint for each battle generation and for changed canvas/font/material, even when the native cursor host is pooled. Discard stale UI lookup and widget references.
+- Resolve an active native battle UI, with a throttled read-only scene lookup if its singleton is unusable. Inspect visible unit/book/result windows and the open battle log instead of treating remembered ccgc mode as current modal visibility. Never write native UI mode or activation.
+- Reset bounded stage diagnostics per battle and record prepared text per binding. The user's log shows successful preview pairing in battles 2, 4, 6, 9 and 11 despite missing display; capture and casualty arithmetic are otherwise retained.
+- Release build passed with zero errors/warnings. Existing checks plus regressions for empty normalized dealers and successive pooled battle bindings pass. Actual multi-battle visibility remains for the user's gameplay test.
+
 ## 0.1.6 — 2026-10-10
 
 - Join the actual native target panel and counter eligibility by battle, hover, caster, target, ability, cell and frame. Remove dependency on a single `bgdy` display entry; reset on battle identity changes. Retain native counter refusal and cursor visuals.

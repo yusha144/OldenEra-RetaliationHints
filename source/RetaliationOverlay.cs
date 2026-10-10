@@ -7,7 +7,9 @@ namespace OldenEra.RetaliationHints;
 public sealed class RetaliationOverlay : MonoBehaviour
 {
     private CursorHint _hint;
-    private BhCursorTooltips _cursorUi;
+    private readonly BattleUiLookup _uiLookup = new();
+    private HintBinding _binding;
+    private int _battleGeneration = -1;
     private float _nextCalculation;
     private IntPtr _lastAttacker, _lastTarget, _lastAbility, _lastDestination, _lastCounter;
     private DamageRange _lastDamage;
@@ -20,6 +22,11 @@ public sealed class RetaliationOverlay : MonoBehaviour
         try
         {
             PreviewCapture.ObserveBattle();
+            if (_battleGeneration != PreviewCapture.BattleGeneration)
+            {
+                ReleaseHint(); _uiLookup.Reset();
+                _battleGeneration = PreviewCapture.BattleGeneration;
+            }
             if (!Plugin.Instance.Enabled.Value || !elb.ckia) { Hide(); return; }
             Plugin.Instance.TraceOnce("battle-update", "Retaliation display updater is running in a battle.");
             var context = PreviewCapture.Current;
@@ -37,17 +44,22 @@ public sealed class RetaliationOverlay : MonoBehaviour
             if (!forecast || !forecast.gameObject.activeInHierarchy || !forecast.cg
                 || !forecast.cg.gameObject.activeInHierarchy || forecast.cg.alpha < .01f)
             { Hide("native-forecast-hidden"); return; }
-            var battleUi = BattleUIController.me;
-            if (!battleUi || !battleUi.gameObject.activeInHierarchy || battleUi.ccgc != TypeBattleUI.Normal)
-            { Hide("battle-ui-not-normal"); return; }
+            var battleUi = _uiLookup.Find();
+            if (!battleUi) { Hide("battle-ui-unavailable"); return; }
+            if (BattleUiLookup.ModalVisible(battleUi)) { Hide("battle-window-visible"); return; }
+            Plugin.Instance.TraceOnce("battle-ui-resolved", $"Active battle UI: {battleUi.Pointer}, remembered mode={battleUi.ccgc}, battle={elb.lastBattleId}.");
             var cursorUi = battleUi.cszk;
             if (!cursorUi || !cursorUi.rootCanvasRect
                 || !cursorUi.simpleTooltip || !cursorUi.simpleTooltip.targetsText)
             { Hide("cursor-resources-unavailable"); return; }
-            if (!_cursorUi || _cursorUi.Pointer != cursorUi.Pointer || _hint == null || !_hint.Root)
+            var text = cursorUi.simpleTooltip.targetsText;
+            if (!text.font || !text.fontSharedMaterial) { Hide("cursor-font-unavailable"); return; }
+            var binding = new HintBinding(_battleGeneration, cursorUi.Pointer, cursorUi.rootCanvasRect.Pointer,
+                text.font.Pointer, text.fontSharedMaterial.Pointer);
+            if (_binding != binding || _hint == null || !_hint.Root)
             {
-                _hint?.Destroy(); _cursorUi = cursorUi;
-                _hint = new(cursorUi, forecast.killedSquadsIcon); _nextCalculation = 0;
+                ReleaseHint(); _binding = binding;
+                _hint = new(cursorUi, forecast.killedSquadsIcon);
             }
             if (_lastAttacker != context.Attacker.Pointer || _lastTarget != context.Defender.Pointer
                 || _lastAbility != context.Attack.Pointer || _lastDestination != (context.Destination?.Pointer ?? IntPtr.Zero)
@@ -79,7 +91,7 @@ public sealed class RetaliationOverlay : MonoBehaviour
             if (_hint.Place(Input.mousePosition, Plugin.Instance.TextScale.Value) && !_reportedPreview)
             {
                 _reportedPreview = true;
-                Plugin.Instance.Log.LogInfo("First retaliation hint prepared beside attack cursor: " + _hint.Diagnostic);
+                Plugin.Instance.Log.LogInfo($"Retaliation hint prepared in battle {elb.lastBattleId}: " + _hint.Diagnostic);
             }
         }
         catch (Exception error) { Hide(); Plugin.Instance.Report("Retaliation display", error); }
@@ -90,5 +102,10 @@ public sealed class RetaliationOverlay : MonoBehaviour
         _hint?.Hide(); _nextCalculation = 0;
         if (reason != null) Plugin.Instance.TraceOnce(reason, "Captured preview hidden: " + reason);
     }
-    public void OnDestroy() { _hint?.Destroy(); PreviewCapture.Reset(); }
+    private void ReleaseHint()
+    {
+        _hint?.Hide(); _hint?.Destroy(); _hint = null;
+        _binding = default; _nextCalculation = 0; _reportedPreview = false;
+    }
+    public void OnDestroy() { ReleaseHint(); PreviewCapture.Reset(); }
 }
