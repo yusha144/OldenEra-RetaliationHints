@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>disable</Nullable><LangVersion>latest</LangVersion>
-    <AssemblyName>OldenEra.RetaliationHints</AssemblyName><Version>0.1.9</Version>
-    <Authors>yusha144</Authors><Description>Olden Era Retaliation Hints. Author: yusha144.</Description>
+    <AssemblyName>OldenEra.RetaliationHints</AssemblyName><Version>0.1.12</Version>
+    <Description>Olden Era Retaliation Hints.</Description>
     <GameRoot Condition="'$(GameRoot)' == ''">E:\Steam_M2\steamapps\common\Heroes of Might and Magic Olden Era</GameRoot>
   </PropertyGroup>
   <ItemGroup>

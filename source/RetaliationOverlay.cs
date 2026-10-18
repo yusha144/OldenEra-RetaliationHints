@@ -23,6 +23,7 @@ public sealed class RetaliationOverlay : MonoBehaviour
         try
         {
             PreviewCapture.ObserveBattle();
+            CombatAudit.Tick();
             if (_battleGeneration != PreviewCapture.BattleGeneration)
             {
                 ReleaseHint(); _uiLookup.Reset();
@@ -74,26 +75,38 @@ public sealed class RetaliationOverlay : MonoBehaviour
                 _lastDestination = context.Destination?.Pointer ?? IntPtr.Zero;
                 _lastCounter = context.Counter?.Pointer ?? IntPtr.Zero; _lastDamage = context.Damage;
                 _lastCanCounter = context.CanCounter;
+                AuditTrace trace = CombatAudit.Enabled ? new() : null;
                 try
                 {
+                    LossRange? losses = context.CanCounter ? null : new LossRange(0, 0, false);
                     var result = HintResult.ForPreview(context.CanCounter,
-                        () => NativeForecast.Calculate(context, context.Damage));
+                        () =>
+                        {
+                            var value = NativeForecast.Calculate(context, context.Damage, trace);
+                            losses = value;
+                            return value;
+                        });
                     _hint.Set(result.Text, result.Danger);
+                    CombatAudit.Calculated(context, losses, null, trace);
                     Plugin.Instance.TraceOnce(context.CanCounter ? "loss-calculated" : "no-counter-shown",
                         "First retaliation result: " + result.Text);
                 }
                 catch (ForecastUnavailableException error)
                 {
                     _hint.Set(HintResult.Unavailable, true);
+                    CombatAudit.Calculated(context, null, error.Message, trace);
                     Plugin.Instance.TraceOnce("unsupported-" + error.Message, "Not simulated: " + error.Message);
                 }
                 catch (Exception error)
                 {
                     _hint.Set(HintResult.Unavailable, true);
+                    CombatAudit.Calculated(context, null, error.GetType().Name, trace);
                     Plugin.Instance.Report("Unsupported retaliation estimate", error);
                 }
             }
-            if (_hint.Place(Input.mousePosition, Plugin.Instance.TextScale.Value) && !_reportedPreview)
+            bool placed = _hint.Place(Input.mousePosition, Plugin.Instance.TextScale.Value);
+            if (placed) CombatAudit.Presented(context); else CombatAudit.Hidden();
+            if (placed && !_reportedPreview)
             {
                 _reportedPreview = true;
                 Plugin.Instance.Log.LogInfo($"Retaliation hint prepared in battle {elb.lastBattleId}: " + _hint.Diagnostic);
@@ -104,6 +117,7 @@ public sealed class RetaliationOverlay : MonoBehaviour
 
     private void Hide(string reason = null)
     {
+        CombatAudit.Hidden();
         _hint?.Hide(); _nextCalculation = 0;
         if (reason != null) Plugin.Instance.TraceOnce(reason, "Captured preview hidden: " + reason);
     }

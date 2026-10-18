@@ -6,13 +6,15 @@ using System.Security.Cryptography;
 
 namespace OldenEra.RetaliationHints;
 
-[BepInPlugin(Id, "Olden Era Retaliation Hints", "0.1.9")]
+[BepInPlugin(Id, "Olden Era Retaliation Hints", Version)]
 public sealed class Plugin : BasePlugin
 {
     internal const string Id = "local.oldenera.retaliationhints";
+    internal const string Version = "0.1.12";
     internal static Plugin Instance;
     internal ConfigEntry<bool> Enabled;
     internal ConfigEntry<float> TextScale;
+    internal ConfigEntry<bool> CombatAuditEnabled;
     internal readonly AttackPatterns Patterns = new();
     private Harmony _patches;
     private readonly HashSet<string> _reported = new();
@@ -37,6 +39,8 @@ public sealed class Plugin : BasePlugin
         Instance = this;
         Enabled = Config.Bind("Display", "Enabled", true, "Show a local estimate of retaliation casualties during a native battle attack preview.");
         TextScale = Config.Bind("Display", "TextScale", 1f, "Text size multiplier (0.7 to 1.8). Does not affect battle rules.");
+        CombatAuditEnabled = Config.Bind("Diagnostics", "CombatAudit", false,
+            "Автоматическая сверка показанного прогноза с событиями боя. Удача и неудача исключаются. Отчёты сохраняются локально. Требуется перезапуск игры.");
         try
         {
             if (!Matches("GameAssembly.dll", "D9972B0E7F7DD1C17758808E2F1B80E0A728946416D9A41DEAA99BAD744DE53A")
@@ -45,8 +49,9 @@ public sealed class Plugin : BasePlugin
             Patterns.Load(Path.Combine(Paths.GameRootPath, "HeroesOldenEra_Data", "StreamingAssets", "Core.zip"));
             _patches = new Harmony(Id);
             _patches.PatchAll(typeof(Plugin).Assembly);
+            CombatAudit.Initialize();
             AddComponent<RetaliationOverlay>();
-            Log.LogInfo($"Retaliation Hints 0.1.9 by yusha144 loaded; {Patterns.Count} supported attack patterns. Native counter refusal shown as a compact no-counter status; unavailable reasons logged only. Per-battle display binding, native damage/counter pairing and bounded self vampirism retained. Current-state estimate; no battle commands or RNG calls.");
+            Log.LogInfo($"Retaliation Hints {Version} loaded; {Patterns.Count} supported attack patterns. Current-state estimate; optional passive combat audit. No battle commands or RNG calls.");
         }
         catch (Exception error)
         {

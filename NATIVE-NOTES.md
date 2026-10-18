@@ -2,6 +2,33 @@
 
 These names belong only to Steam build 25672315. Plugin startup checks both GameAssembly.dll and IL2CPP metadata SHA-256 before resolving the hooks.
 
+## Audit corrections verified against recordings (0.1.12)
+
+The first real session contains 971 legacy results, 55 paired previews and 42 eligible exchanges. All 11 mismatch labels were caused by the observer's incorrect overkill cap. `ObjectTookDamageEventArgs.damage` retains full damage, including overkill (e.g. 342 against 165 remaining HP). Compare it directly to the native preview range. Health subtraction remains capped separately. Full replay through the production evaluator preserves all prior matches and produces 42 matches; it does not replay native combat or RNG.
+
+Before registering a command or step, require the same battle pointer as `elb.ckia.ckic` and the same queue pointer as that battle's `clhf`. Foreign simulations cannot consume the shown preview or replace a pending command. The old file identifies 849 records belonging to other battle objects relative to the five objects with paired previews. Legacy files lack active queue identity; queue guard coverage is provided by separate tests, not inferred from absent data.
+
+Observe `eox.bgqc` at `0x2171BA0` with a prefix and void finalizer. Its battle is `cliq`. The native method queues its opening/counter sequence with `etw.bhej`; the later branches at `0x2172D77` and `0x21730D7` also enqueue additional `etk` steps. Each scheduler invocation gets a separate managed command with a map of step pointers. Register counter steps even when queued before the opening (preemptive order). `etk.bhdy`, `etm.bhdy` and `exk.bijb` update their own registered command. Damage is routed by current queue step and exact source/target/ability/dealer. The finalizer restores nesting without changing native exceptions. Unknown scheduler paths remain unpaired rather than being guessed into a known command.
+
+A second queued opening no longer finalizes the first record. Multiple openings remain available in one command, with `multiple_hits` excluded from single-counter scoring. Separate commands can coexist until queue completion, timeout or battle change. Command and step identities are written in schema 2. Historical #211 was discarded before its damage was recorded; missing events cannot be recovered. Regression tests reproduce queued overlapping commands and unresolved subsequent targets without fabricating damage or claiming the original native command boundaries are known.
+
+`AuditJournal` rotates at 16 MiB per file with a shared session id and monotonically increasing part number. It retains every previous part. Offline replay is available with `dotnet run --project tests/RetaliationHints.Tests.csproj -c Release -- --audit-replay <journal.jsonl> <report.json>`. A compact regression fixture preserves original JSON rows for all 11 false mismatches and representative excluded cases. New command hooks still require observation in subsequent ordinary gameplay; a successful replay only validates managed logic and recorded evidence.
+
+## Passive combat audit (0.1.11)
+
+Opt-in `Diagnostics.CombatAudit` installs separate observer hooks after the existing hash gate. Hooks are void prefixes/postfixes/finalizers: they never change arguments, return values or exceptions. No combat command or event method is invoked by the observer. Forecast math is unchanged; `AuditTrace` only captures already-computed endpoint branches.
+
+- `etw.bhej(ety, Unit)` at `0x21EFC80` queues the action. For `etk`, capture `cmbq` (attacker), `cmbp` (ability), `cmbn` (target hex indices), `cmbo` (path). Only a single target with the same fresh visible forecast is scored. `etk.kob` at `0x21EBE50` resolves a target index through map `dpr`, confirming that it is a hex index. It is inspected, not invoked.
+- `etk.bhdy` at `0x21EBF90` starts the opening attack; `cmbu` is its already-rolled luck multiplier. `etm.bhdy` at `0x21ECC50` supplies counter source `cmcf`, target `cmcg`, ability `cmcb`, multiplier `cmcd`, and pre-counter snapshots. The neutral multiplier is 1. A non-neutral multiplier on an executed strike excludes the exchange from scoring; no RNG method is called.
+- `etm.bhdy` can immediately finish without a counter if either unit is dead or the ability is disabled. Observe `exk.bijb` at `0x2270650`, called after those checks, to mark actual counter execution. Merely entering `etm.bhdy` does not prove an attack occurred. Match its owner `cnaa` and the current queue step.
+- `exr.bikt` at `0x2277850` is the damage application scope, with receiver `cnck` and arguments caster, cast source, dealer, input damage. The prefix stores managed snapshots. Its void finalizer removes the scope even after an exception without replacing or suppressing that exception.
+- This method constructs `ObjectTookDamageEventArgs` and calls `enb.bfmq` at `0x20E7930` after applying damage, before listeners and the later `enc.bfwd` dispatch. The observer's prefix reads the actual event `damage`, `stacksDestroyed`, `immuneToDamage`, `fromMech` and immediate post-damage health. Match caster, receiver, ability, primary dealer and the queue step. Later buffs, reflection and healing cannot overwrite this snapshot.
+- `etw.bheh` at `0x21EFA80` assigns `cmdt` before calling a step's `bhdy`, keeps it during its updates, and clears it after `Finished`. End an audit only when `ctwi` is false, both pending lists are empty, and the current step is absent or finished. Battle changes, overlapping attacks and a 120-second timeout produce an incomplete record.
+
+The original 0.1.11 assumption that damage events cap overkill was disproved by the real session and corrected in 0.1.12 above. The audit separately compares ordinary health subtraction, including the existing maxInDmg cap, with immediate actual health. The native minimum-survivor cap (`stacksToLeave` in `exr.bikt`) is not added to the forecast here: its discrepancies are evidence for the next correction. Stats and buffs before the command and before the counter help investigate changes between the hits.
+
+All JSON values are managed snapshots. No native object is serialized. Unknown linkage, missing events, multi-hit actions, unsupported forecasts and preemptive counters are not scored as successes. A match only validates the observed outcome, not every intermediate roll or the whole damage envelope. Local build and model tests do not establish that the IL2CPP observer has run in an actual battle.
+
 ## Read path
 
 - `eof.bgdy` constructs the game's own DamageUiParams from `cldm` (caster), `cldl` (ability), target and attack-pattern multiplier. It calls `bgdp` (damage forecast) and then `bgdq` (counterattack indicator).

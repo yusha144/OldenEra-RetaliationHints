@@ -1,5 +1,11 @@
 using OldenEra.RetaliationHints;
 
+if (args.Length > 0 && args[0] == "--audit-replay")
+{
+    AuditReplay.Run(args[1], args.Length > 2 ? args[2] : null);
+    return;
+}
+
 static void Equal<T>(T expected, T actual, string reason)
 {
     if (!EqualityComparer<T>.Default.Equals(expected, actual))
@@ -163,6 +169,9 @@ foreach (var screen in new[] { (Width: 1280f, Height: 720f), (Width: 2560f, Heig
 }
 Equal(false, CursorPlacement.Place(1920, 1080, -10, 200, 240, 32, 1).Valid, "outside game viewport");
 Console.WriteLine("PASS: cursor placement and screen-edge flips");
+
+CombatAuditTests.Run();
+AuditReplay.Run(Path.Combine(AppContext.BaseDirectory, "fixtures", "combat-audit-0.1.11.jsonl"), fixture: true);
 
 if (args.Length > 0)
 {

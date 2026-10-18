@@ -11,5 +11,11 @@
     <Compile Include="../source/EffectContent.cs" Link="EffectContent.cs" />
     <Compile Include="../source/HintBinding.cs" Link="HintBinding.cs" />
     <Compile Include="../source/HintResult.cs" Link="HintResult.cs" />
+    <Compile Include="../source/CombatAuditModel.cs" Link="CombatAuditModel.cs" />
+    <Compile Include="../source/AuditCommands.cs" Link="AuditCommands.cs" />
+    <Compile Include="../source/AuditJournal.cs" Link="AuditJournal.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="fixtures/*.jsonl" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

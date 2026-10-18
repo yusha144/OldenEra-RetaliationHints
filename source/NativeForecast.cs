@@ -6,7 +6,7 @@ namespace OldenEra.RetaliationHints;
 
 internal static class NativeForecast
 {
-    internal static LossRange Calculate(PreviewCapture.Context context, DamageRange opening)
+    internal static LossRange Calculate(PreviewCapture.Context context, DamageRange opening, AuditTrace trace = null)
     {
         var attacker = Health(context.Attacker);
         var defender = Health(context.Defender);
@@ -44,6 +44,7 @@ internal static class NativeForecast
             if (forecast == null || !forecast.cmpr || !forecast.cmqa)
                 throw Unavailable("нет прогноза контрудара");
             var range = new DamageRange(forecast.cmps, forecast.cmpt);
+            trace?.Branches.Add(new(sourceHealth, targetHealth, range));
             cache[(sourceHealth, targetHealth)] = range;
             return range;
         }, healing);
@@ -129,7 +130,7 @@ internal static class NativeForecast
 
     private static ForecastUnavailableException Unavailable(string reason) => new(reason);
 
-    private static StackHealth Health(Unit unit)
+    internal static StackHealth Health(Unit unit)
     {
         var data = unit.cmwp;
         int hp = unit.stats.hp, count = data.ctxr;

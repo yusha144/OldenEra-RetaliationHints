@@ -38,6 +38,7 @@ internal static class PreviewCapture
         var battle = elb.ckia?.ckic?.Pointer ?? IntPtr.Zero;
         if (battle != _battle || elb.lastBattleId != _battleId)
         {
+            CombatAudit.BattleChanged();
             Reset(); _battle = battle; _battleId = elb.lastBattleId; BattleGeneration++;
             Plugin.Instance.BeginBattleDiagnostics(_battleId);
         }
@@ -122,14 +123,14 @@ internal static class PreviewCapture
                 Current = null;
                 var context = new Context { Hover = hover, Attacker = __0, Defender = __1, Attack = __2,
                     TargetHex = __3, CanCounter = __result, Frame = Time.frameCount };
+                // Preserve the selected destination even without a counter so
+                // the passive auditor can match a moving attack to its preview.
+                context.Destination = __0.ctvn;
+                var type = __2.cjuj?.csus;
+                if ((type == Hex.Configs.EAttackType.Melee || type == Hex.Configs.EAttackType.Range)
+                    && __4 != null && __4.Count > 0) context.Destination = __4[0];
                 if (__result)
-                {
                     context.Counter = __1.ckyj.bdui(__1, __0, __2, __instance.cliq.clgw, __instance.clis, __4);
-                    context.Destination = __0.ctvn;
-                    var type = __2.cjuj.csus;
-                    if ((type == Hex.Configs.EAttackType.Melee || type == Hex.Configs.EAttackType.Range)
-                        && __4 != null && __4.Count > 0) context.Destination = __4[0];
-                }
                 _decision = new() { Key = key, Context = context };
                 // Bounded per matchup diagnostics still distinguish ghost/cavalry
                 // after another creature has already produced the first log line.
