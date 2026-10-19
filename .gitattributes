@@ -6,3 +6,5 @@
 *.bat text eol=crlf
 *.dll binary
 *.zip binary
+*.csproj text eol=lf
+*.yml text eol=lf

@@ -1,53 +1,44 @@
-# Retaliation Hints — isolated mod
+# Правила Retaliation Hints
 
-## Тестовая поставка 0.1.12 от 18 октября 2026
+## Границы работы и выпуска
 
-Пользователь принял текущие ограничения для первого тестирования в Discord и попросил явно указать их. Готовить отдельный локальный архив версии 0.1.12, без изменения формулы и правил боя. Подробная сверка по умолчанию false; текущую пользовательскую конфигурацию со сверкой true не менять. На новом сеансе записаны 89 команд в 9 боях: 36 оцениваемых, 31 полное совпадение и 5 расхождений первого урона, потери совпали во всех 36. Реальных обычных ответок среди них только две. Состояние до удара менялось из-за восстановления численности и позиционных характеристик; не объявлять причины всех пяти случаев полностью доказанными. У двух многоударных команд сохранились шаги, но нет подробного урона из-за отсутствия Preview. Не утверждать, что полнота записи таких цепочек уже подтверждена. Публикация в Discord пользователем не означает автоматическую отправку сообщений или загрузку на GitHub.
+- Это отдельный мод: GUID `local.oldenera.retaliationhints`, DLL `OldenEra.RetaliationHints.dll`, папка установки `BepInEx/plugins/RetaliationHints`.
+- Не изменять, не пересобирать и не переустанавливать соседние моды. Пользователь сам запускает и закрывает игру. Не управлять игрой и её окном.
+- Версия 0.1.13 оформляет установщик, документацию и предварительный выпуск. Формула прогноза и обработка событий сохранены из 0.1.12.
+- Репозиторий остаётся закрытым до отдельного указания владельца. Запрос на выпуск разрешает загрузку в закрытый GitHub; отправка сообщений в Discord требует отдельного поручения.
+- Использовать Conventional Commits с русским описанием по [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md).
+- Авторство находится в README и уведомлении MIT. Не добавлять его в DLL, журнал или пользовательские настройки.
+- Тег `stable/v0.1.8`, соседние папка и архив `OldenEra-RetaliationHints-STABLE-0.1.8`, их контрольные суммы и существующие теги неизменяемы. [Описание сохранённой версии](development/STABLE-BASELINE.md).
+- Перед явно разрешённым изменением установленного мода сохранять DLL и настройки. Не заменять их при работающей игре. Подготовка выпуска не означает установку.
 
-## Рабочая версия 0.1.12
+## Расчёт
 
-Сверка 0.1.12 сравнивает полный урон игрового события без ограничения здоровьем цели. Сначала отбрасывает чужие экземпляры боя и очереди, затем объединяет шаги одного eox.bgqc и хранит отдельные команды независимо. Не возвращать завершение предыдущей записи при любом следующем etw.bhej. Многоударные команды сохраняются, но пока не оцениваются как одиночная ответка. Журналы делятся на части по 16 МиБ и не удаляют прошлые данные. Перепроверка старого сеанса исправила 11 ложных расхождений; всего 42 оцениваемых совпадения. Запись 211 потеряла события ещё в 0.1.11, их нельзя достоверно восстановить. Не утверждать, что повторная обработка старого формата проверила новые нативные границы команд: для них есть отдельные проверки, наблюдение в новых обычных боях остаётся необходимым.
+- Читать только настоящий штатный прогноз при наведении. Не отправлять боевые команды, не вызывать исполнение атаки или лечения, не расходовать RNG и не записывать сохранения.
+- Использовать детерминированные игровые методы урона и штатную проверку разрешения ответки. Изменять здоровье и позицию только у отделённых копий. Исходный прогноз, аргументы и результаты игровых методов не менять.
+- Проверка SHA-256 сборки обязательна: обфусцированные имена зависят от версии игры.
+- Сохранять приблизительный знак `~`. Не обещать полный расчёт цепочек эффектов, удачи, отражения или всех способов лечения.
+- Штатный запрет контрудара, связанный с видимым прогнозом выбранной цели, показывает `Без контрудара` без расчёта эффектов попадания. Неизвестный или неудачный расчёт показывает `Потери: нет расчёта`. Нулевые потери не означают отсутствие контрудара.
+- Не отбрасывать `Range`: в используемом перечислении это ближняя атака с достижением цели. Дальний выстрел обозначается `Shoot`.
+- Временные существа учитываются отдельно. Ограниченный вампиризм по одной цели считает погибших после лечения и прироста, не чистое изменение численности за обмен ударами. При лечении проверяются все выжившие варианты первого урона, максимум 257; широкий диапазон не заменять выборкой.
+- Пустые side-dealer-конфигурации нормальны. Наличие объекта и стандартный statDmgMult=1 не доказывают эффект: проверять содержимое и цель урона.
 
-Добавлена пассивная сверка настоящих боевых событий, включаемая через Diagnostics.CombatAudit. Формула прогноза не изменена. Удача и неудача исключаются из оценки по уже определённым игрой множителям; RNG не вызывается. Неполные, устаревшие и неоднозначные записи нельзя считать совпадением или нулевыми потерями. Хуки наблюдения никогда не изменяют аргументы, результаты или исключения игровых методов. Перед установкой сохранять DLL и конфигурацию, не заменять их при работающей игре. Пользователь сам запускает и закрывает игру. Не объявлять подключение к настоящему бою проверенным по одной лишь успешной сборке и отдельным тестам.
+## Отображение
 
-Актуальный выпуск 0.1.10: пользователь оставил авторство только одной строкой в README и обычные названия модов. Авторство из метаданных DLL и журнала удалено. Расчёт боя, надписи и жизненный цикл подсказки не изменены. Это заменяет требование об авторстве из исторического раздела 0.1.9 ниже.
+- Подсказка является неинтерактивным дочерним элементом штатного экранного интерфейса курсора и скрывается вместе с прогнозом и боевым интерфейсом. Не добавлять общий Canvas или принудительную сортировку, не привязывать к мировой полоске отряда.
+- Нормализовать обе оси до экранных пикселей. Учитывать камеру Canvas, сохранять свободной точку курсора, переносить подсказку у краёв и ограничивать экраном. При неверном преобразовании скрывать её.
+- Использовать обычный шрифт подсказки и его общий материал как ссылки только для чтения. Измерять видимые символы, не возвращать фиксированную высоту с многоточием.
+- Связывать прогноз, цель и решение об ответке по бою, выбору и кадру; проверять все занятые клетки цели. Сбрасывать состояние при смене боя. Пересоздавать виджет при смене боевого поколения, Canvas, шрифта или материала.
+- Проверять фактическую видимость штатного окна, не менять состояние игры ради принудительного показа. Временную подготовку TMP выполнять прозрачно. Диагностику этапов ограничивать.
+- Пользователь подтвердил отображение в последовательных боях после 0.1.7. Это не подтверждает отсутствие всех проблем отображения или точность всех механик. Причина прежних исчезновений и связь со старыми сохранениями не доказаны.
 
-## Distribution update 0.1.9
+## Сверка и проверки
 
-The user explicitly requested author yusha144 and an easy combined installer for all three mods. This authorizes coordinated packaging despite older task-specific isolation instructions below. Version 0.1.9 changes attribution/version only; no battle arithmetic or UI logic. The accepted exact 0.1.8 DLL remains in the frozen baseline, while the working plugin folder now tracks 0.1.9. Preserve stable tags, archives and baseline directories. No new Retaliation hotkey was added.
-
-## Preserved stable 0.1.8
-
-The user requested preserving the current 0.1.8 as stable on 2026-10-10, just like the other two mods. Frozen sibling directory `../OldenEra-RetaliationHints-STABLE-0.1.8`, archive `../OldenEra-RetaliationHints-STABLE-0.1.8.zip` and adjacent `.sha256`; local tag `stable/v0.1.8`. Never move/delete/replace this tag or the frozen baseline during ordinary development. `plugin/OldenEra.RetaliationHints.dll` is the exact accepted installed binary, not a new rebuild. Future development belongs in this working project with a higher version; preserve the installed DLL/config before updates. Recovery uses the per-file manifest and includes source, tests, actual settings, loader package/config, instructions and portable Git history. Keep all three mods independent and backups local. Stable preservation does not establish exhaustive combat or multiplayer validation. See STABLE-BASELINE.md.
-
-## Development rules
-
-- GUID `local.oldenera.retaliationhints`; assembly `OldenEra.RetaliationHints.dll`.
-- Preserve Map Hints and Skill Synergies independently; do not alter, build, disable or reinstall either.
-- Read only an actual native battle hover forecast. Do not send battle commands, modify live units, call event execution, consume the battle RNG or write saves.
-- Use native deterministic damage endpoints and native retaliation eligibility. Changes to projected health/position belong only to detached copies. Never patch damage results or change the original forecast.
-- Do not promise exhaustive simulation of triggered mechanics. Explicitly distinguish a current-state estimate from an exact prediction. Do not label unsupported/failed calculations as zero casualties.
-- All graphics are noninteractive children of the native screen-space cursor UI and disappear with the native forecast and battle UI. The user requested placement beside the sword cursor in 0.1.2; do not reattach to the world-space unit bar or copy its see-through font material. Do not add a global overlay canvas or a sorting override.
-- Normalize the mod root to screen pixels on both axes before sizing text, images or border insets. Use the screen-space canvas camera when required. Keep the cursor hotspot clear, flip at screen edges and bound the rectangle to the viewport. Hide invalid transforms; never display an oversized or inverted background.
-- The user confirmed an icon-only panel in 0.1.2. For 0.1.3 use both the ordinary tooltip font and its shared material, nonwrapping overflow and measured visible glyph bounds. Do not restore fixed-height ellipsis: tall native font metrics can discard the whole first line. Preserve materials/font assets as read-only references; include the actual text and glyph count in the first-placement diagnostic. User testing must confirm visibility.
-- In 0.1.3 the user again saw no panel during an eligible melee preview; the log did not identify the exact early guard. Version 0.1.4 scopes capture to the native `eof.bgdy` display call, pairs the actual panel/range with its target, checks occupied cells rather than only the unit origin, and allows a newly activated TMP label to finish preparing while transparent. Keep stage diagnostics bounded and do not claim the root cause or live rendering is confirmed without evidence.
-- Since the user's 0.1.8 request, display «Без контрудара» when the native eligibility result is false, paired with the actual selected target's visible damage forecast. Do not evaluate on-hit effects in that branch. This supersedes the earlier requirement to hide on false. Unknown/unsupported calculations must never be called no counter. Do not filter on `Range`: that native enum is reaching melee, while `Shoot` is the ranged shot. Retain valid native exceptions.
-- Build hash gate is mandatory because obfuscated names change across builds.
-- The user performs gameplay tests. Do not start, close or control the game. Validate the arithmetic and build locally; report those checks accurately and concisely.
-- Releases, history and backups stay local. Preserve installed DLL/config before updates.
-
-- The user subsequently reported that hints appear in new games, while old saves were unreliable; intermittent disappearance still occurs in new games. Treat this as an observation, not an established save-related cause or a requirement to discard saves. Version 0.1.5 only changes the chosen label to «Потери», retaining preemptive timing and unavailable states. Do not claim the intermittent display issue is fixed.
-
-## 0.1.6 expansion
-
-The user requested broader mechanics after reporting missing hints for the Necropolis ghost with vampirism/temp growth, and also Temple cavalry. They speculate about restarting/new battles; no save/restart root cause is established. This request authorizes arithmetic changes beyond the earlier display-only fixes.
-
-Version 0.1.6 pairs the actual native target view/damage and native counter decision by battle/selection/frame without a `bgdy`-only scope, and clears state on battle changes. It supports temporary creatures and bounded single-target self vampirism; known unsupported conditions produce an explicit reason. Preserve the approximate `~` label and do not promise passive event chains, luck, reflection or all healing variants. At most 257 surviving opening rolls are evaluated with healing. No native attack or heal execution is allowed. Build and focused pure tests pass; gameplay visibility/correctness are still for the user's test, not confirmed fixed.
-
-## 0.1.7 regression fix
-
-User reports false «эффект после попадания» on plain attacks and no panel after the first battle. Their 0.1.6 log confirms native preview pairing in multiple subsequent battles. Empty side-dealer configs are normal, including default statDmgMult=1; check an actual payload and damage target, not allocation/nonzero multiplier alone. Version 0.1.7 rebuilds the widget on every battle generation or canvas/font/material change, reacquires usable native UI, and checks actual modal visibility instead of remembered ccgc. Never reset native UI state to force a hint. Arithmetic/capture retained; build and focused regressions pass. Do not claim the user's multi-battle gameplay test passed until they confirm it.
-
-## 0.1.8 compact counter status
-
-The user confirmed 0.1.7 displays correctly in every new battle. They requested a concise no-counter status for attacks that suppress retaliation and asked whether vampirism is counted. Preserve native eligibility as the authority: publish false as well as true when matched to the visible damage forecast, render «Без контрудара» without invoking calculation for false. Show «Потери: нет расчёта» for unsupported/error states, retaining detailed bounded logs. Zero casualties do not mean no counter. Invalidate cached text immediately when eligibility changes. Keep the 0.1.7 battle bindings and existing limited self-vampirism arithmetic unchanged. Vampirism losses are creatures killed from the healed/grown stack, not net count change over the entire exchange. The new labels require the user's live test; other mods remain untouched.
+- `Diagnostics.CombatAudit` по умолчанию false. Существующую пользовательскую настройку true сохранять.
+- Наблюдение не меняет аргументы, результаты и исключения игровых методов. Удача исключается по уже определённым игровым множителям без вызова RNG.
+- Сравнивать полный урон события без ограничения здоровьем цели. Отбрасывать чужие экземпляры боя и очереди до создания записей.
+- Объединять шаги одного `eox.bgqc`, хранить отдельные команды независимо. Не завершать предыдущую запись при любом следующем `etw.bhej`.
+- Неполные, устаревшие и неоднозначные записи не считать совпадением или нулевыми потерями. Несколько ударов не оценивать как одну ответку. Сохранять части журнала по 16 МиБ без удаления предыдущих данных.
+- В сеансе 0.1.12: 89 команд в 9 боях, 36 оцениваемых действий, 31 полное совпадение и 5 расхождений первого урона; потери совпали во всех 36. Обычная ответка была только в двух. Причины всех пяти расхождений не доказаны полностью.
+- Две многоударные команды сохранили шаги, но без Preview не имели подробного урона. Полнота записи цепочек не подтверждена. Старую запись 211 с потерянными событиями нельзя восстановить повторной обработкой.
+- Повторная обработка старого журнала исправила 11 ложных расхождений и дала 42 оцениваемых совпадения. Она не проверяет новые нативные границы команд.
+- Выполнять [проверки и сборку](development/README.md), отдельно обозначать игровую проверку пользователя. Сборка и автономные проверки не доказывают подключение к настоящему бою, все границы диапазона или сетевую совместимость.

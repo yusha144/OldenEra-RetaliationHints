@@ -1,0 +1,13 @@
+@echo off
+setlocal DisableDelayedExpansion
+title Olden Era RetaliationHints
+if not exist "%~dp0_files\Install.ps1" if exist "%~dp0Install.ps1" goto source
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0_files\Install.ps1" -PackageRoot "%~dp0."
+goto completed
+:source
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0Install.ps1" -SourceArchive
+:completed
+set "result=%errorlevel%"
+echo.
+pause
+exit /b %result%

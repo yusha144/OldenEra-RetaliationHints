@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>disable</Nullable><LangVersion>latest</LangVersion>
-    <AssemblyName>OldenEra.RetaliationHints</AssemblyName><Version>0.1.12</Version>
+    <AssemblyName>OldenEra.RetaliationHints</AssemblyName><Version>0.1.13</Version>
     <Description>Olden Era Retaliation Hints.</Description>
-    <GameRoot Condition="'$(GameRoot)' == ''">E:\Steam_M2\steamapps\common\Heroes of Might and Magic Olden Era</GameRoot>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony"><HintPath>$(GameRoot)\BepInEx\core\0Harmony.dll</HintPath><Private>false</Private></Reference>
@@ -20,5 +19,8 @@
     <Reference Include="UnityEngine.UI"><HintPath>$(GameRoot)\BepInEx\interop\UnityEngine.UI.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Unity.TextMeshPro"><HintPath>$(GameRoot)\BepInEx\interop\Unity.TextMeshPro.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
+  <Target Name="CheckGameReferences" BeforeTargets="ResolveReferences">
+    <Error Condition="!Exists('$(GameRoot)\BepInEx\interop\Hex.dll')" Text="Не найдены библиотеки игры. Передайте -p:GameRoot=путь_к_игре с установленным BepInEx 6 IL2CPP." />
+  </Target>
 </Project>
 
