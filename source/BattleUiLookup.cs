@@ -50,7 +50,7 @@ internal sealed class BattleUiLookup
 
     private static bool Blocks(BhScreen window)
     {
-        if (!window || !window.gameObject.activeInHierarchy || !window.cvrc
+        if (!window || !window.gameObject.activeInHierarchy || !window.cvrd
             || !window.canvas || !window.canvas.isActiveAndEnabled || (window.cg && window.cg.alpha <= .01f))
             return false;
         string name = window.GetIl2CppType().Name;

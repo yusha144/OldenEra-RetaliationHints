@@ -210,4 +210,5 @@ if (args.Length > 0)
     string gameRoot = Directory.GetParent(Directory.GetParent(Path.GetDirectoryName(Path.GetFullPath(args[0])))!.FullName)!.FullName;
     string plugin = args.Length > 1 ? args[1] : Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../source/bin/Release/net6.0/OldenEra.RetaliationHints.dll"));
     InteropBoundaryChecks.Run(Path.Combine(gameRoot, "BepInEx/interop/Hex.dll"), plugin);
+    ScreenStateChecks.Run(plugin);
 }
