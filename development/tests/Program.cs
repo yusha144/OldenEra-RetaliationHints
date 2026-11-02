@@ -12,6 +12,21 @@ static void Equal<T>(T expected, T actual, string reason)
         throw new Exception($"{reason}: expected {expected}, received {actual}");
 }
 
+// Native fields count full permanent and temporary creatures separately from the top.
+int nativeStates = 0;
+for (int full = 0; full <= 3; full++)
+for (int temp = 0; temp <= 3; temp++)
+for (int top = 0; top <= 10; top++)
+foreach (bool temporaryTop in new[] { false, true })
+{
+    var value = StackHealth.FromNativeCounts(full, temp, top, 10, temporaryTop);
+    Equal(full + temp + (top > 0 ? 1 : 0), value.Count, "native count includes wounded top and all temporary creatures");
+    Equal((long)(full + temp) * 10 + top, value.Total, "native total HP is preserved");
+    Equal(temp + (top > 0 && temporaryTop ? 1 : 0), value.Temporary, "native temporary top is counted once");
+    nativeStates++;
+}
+Console.WriteLine($"PASS: native health fields ({nativeStates} states, including empty and temporary-only stacks)");
+
 // A wounded top creature must die before a second full creature can be lost.
 var wounded = new StackHealth(10, 10, 3);
 Equal(new StackHealth(10, 10, 1), wounded.Hit(2), "sublethal wounded top");
@@ -188,4 +203,11 @@ if (args.Length > 0)
     Equal(true, patterns.IsSingleDamageCell("attack_single_x100"), "ghost's single-target life steal");
     Equal(false, patterns.IsSingleDamageCell("attack_swipe_x100_x100"), "multi-target healing cannot use one victim");
     Console.WriteLine($"PASS: installed game's counterattack patterns ({patterns.Count} supported patterns loaded)");
+}
+
+if (args.Length > 0)
+{
+    string gameRoot = Directory.GetParent(Directory.GetParent(Path.GetDirectoryName(Path.GetFullPath(args[0])))!.FullName)!.FullName;
+    string plugin = args.Length > 1 ? args[1] : Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../source/bin/Release/net6.0/OldenEra.RetaliationHints.dll"));
+    InteropBoundaryChecks.Run(Path.Combine(gameRoot, "BepInEx/interop/Hex.dll"), plugin);
 }

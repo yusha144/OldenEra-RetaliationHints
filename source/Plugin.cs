@@ -10,7 +10,7 @@ namespace OldenEra.RetaliationHints;
 public sealed class Plugin : BasePlugin
 {
     internal const string Id = "local.oldenera.retaliationhints";
-    internal const string Version = "0.1.13";
+    internal const string Version = "0.1.14";
     internal static Plugin Instance;
     internal ConfigEntry<bool> Enabled;
     internal ConfigEntry<float> TextScale;
@@ -29,9 +29,9 @@ public sealed class Plugin : BasePlugin
 
     internal void TraceMatch(Hex.Session.Battle.Unit attacker, Hex.Session.Battle.Unit target, bool allowed, bool paired)
     {
-        string key = $"{elb.lastBattleId}:{attacker.ckyo}->{target.ckyo}:{allowed}:{paired}";
+        string key = $"{emh.lastBattleId}:{attacker.cncf}->{target.cncf}:{allowed}:{paired}";
         if (_matchups.Count < 48 && _matchups.Add(key))
-            Log.LogInfo($"Preview pair [{key}]: battle={elb.lastBattleId}, temporary={attacker.cmwp.tempFullStacks}/{target.cmwp.tempFullStacks}.");
+            Log.LogInfo($"Preview pair [{key}]: battle={emh.lastBattleId}, temporary={attacker.cpgj.tempFullStacks}/{target.cpgj.tempFullStacks}.");
     }
 
     public override void Load()
@@ -43,9 +43,9 @@ public sealed class Plugin : BasePlugin
             "Автоматическая сверка показанного прогноза с событиями боя. Удача и неудача исключаются. Отчёты сохраняются локально. Требуется перезапуск игры.");
         try
         {
-            if (!Matches("GameAssembly.dll", "D9972B0E7F7DD1C17758808E2F1B80E0A728946416D9A41DEAA99BAD744DE53A")
-                || !Matches("HeroesOldenEra_Data/il2cpp_data/Metadata/global-metadata.dat", "99117DC93F4B427967A2FCA49378E1B39B3202401B15234A98328FAA7D489817"))
-            { Log.LogWarning("Retaliation Hints disabled: unsupported game build (expected Steam 25672315)."); return; }
+            if (!Matches("GameAssembly.dll", "20AD026C2E10ABFCB17320E8174B611551857B5D97D59BEBC29142B28CA45CB3")
+                || !Matches("HeroesOldenEra_Data/il2cpp_data/Metadata/global-metadata.dat", "BB50ABC2B3CBFCFA61617674A723761A5542831C263A34C6A70486840863F846"))
+            { Log.LogWarning("Retaliation Hints disabled: unsupported game build (expected Steam 26321935)."); return; }
             Patterns.Load(Path.Combine(Paths.GameRootPath, "HeroesOldenEra_Data", "StreamingAssets", "Core.zip"));
             _patches = new Harmony(Id);
             _patches.PatchAll(typeof(Plugin).Assembly);
@@ -77,4 +77,3 @@ public sealed class Plugin : BasePlugin
         return Convert.ToHexString(hash.ComputeHash(stream)) == expected;
     }
 }
-

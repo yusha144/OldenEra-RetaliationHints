@@ -29,18 +29,18 @@ internal static class CombatAudit
     internal sealed class CommandScope
     {
         public AuditCommand Command;
-        public etw Queue;
+        public evj Queue;
         public AuditPreview Shown;
         public double ShownAt, StartedAt;
-        public readonly Dictionary<long, ety> NativeSteps = new();
+        public readonly Dictionary<long, evl> NativeSteps = new();
     }
 
     internal sealed class DamageScope
     {
         public AuditExchange Exchange;
         public Unit Receiver, Source;
-        public eib Ability;
-        public ekb Dealer;
+        public ejh Ability;
+        public elh Dealer;
         public AuditUnit Before, SourceBefore;
         public int Input;
         public bool Seen;
@@ -56,13 +56,13 @@ internal static class CombatAudit
             _summaryPath = Path.Combine(folder, "latest-summary.txt");
             _journal = new(folder, Plugin.Version);
             _patches = new Harmony(Plugin.Id + ".audit");
-            Patch(typeof(eox), nameof(eox.bgqc), nameof(BeginCommand), null, nameof(EndCommand));
-            Patch(typeof(etw), nameof(etw.bhej), null, nameof(Queued));
-            Patch(typeof(etk), nameof(etk.bhdy), nameof(OpeningStarted));
-            Patch(typeof(etm), nameof(etm.bhdy), nameof(CounterStarted));
-            Patch(typeof(exk), nameof(exk.bijb), nameof(CounterExecuting));
-            Patch(typeof(exr), nameof(exr.bikt), nameof(BeforeDamage), null, nameof(AfterDamage));
-            Patch(typeof(enb), nameof(enb.bfmq), nameof(DamageEvent));
+            Patch(typeof(eqd), nameof(eqd.bhpm), nameof(BeginCommand), null, nameof(EndCommand));
+            Patch(typeof(evj), nameof(evj.biel), null, nameof(Queued));
+            Patch(typeof(eux), nameof(eux.biea), nameof(OpeningStarted));
+            Patch(typeof(euz), nameof(euz.biea), nameof(CounterStarted));
+            Patch(typeof(ezp), nameof(ezp.bjpx), nameof(CounterExecuting));
+            Patch(typeof(ezv), nameof(ezv.bjrp), nameof(BeforeDamage), null, nameof(AfterDamage));
+            Patch(typeof(eoi), nameof(eoi.bglr), nameof(DamageEvent));
             _ready = true;
             Summary();
             Plugin.Instance.Log.LogInfo($"Combat audit enabled: {_journal.CurrentPath}");
@@ -80,7 +80,7 @@ internal static class CombatAudit
     {
         if (!Enabled) return;
         Guard(() => _calculated = new(Key(context), Snapshot(context.Attacker), Snapshot(context.Defender),
-            context.Damage, losses, context.CanCounter, context.Defender.bigr("counter_before_attack"), unavailable, trace));
+            context.Damage, losses, context.CanCounter, context.Defender.bjnn("counter_before_attack"), unavailable, trace));
     }
 
     internal static void Presented(PreviewCapture.Context context)
@@ -116,10 +116,10 @@ internal static class CombatAudit
                 var command = scope.Command;
                 if (!command.SchedulingComplete) continue;
                 foreach (var step in command.Exchange.Steps)
-                    step.Finished = scope.NativeSteps[step.Pointer].cmee == ety.EState.Finished;
+                    step.Finished = scope.NativeSteps[step.Pointer].cojl == evl.EState.Finished;
                 var queue = scope.Queue;
-                if (!queue.ctwi && queue.cmdr.Count == 0 && queue.cmds.Count == 0
-                    && (queue.cmdt == null || queue.cmdt.cmee == ety.EState.Finished))
+                if (!queue.cwou && queue.coiy.Count == 0 && queue.coiz.Count == 0
+                    && (queue.coja == null || queue.coja.cojl == evl.EState.Finished))
                 {
                     bool complete = command.Exchange.Steps.All(s => s.Finished);
                     Finish(scope, complete, complete ? "Очередь и все шаги команды завершены"
@@ -131,16 +131,16 @@ internal static class CombatAudit
         });
     }
 
-    private static bool IsLive(eor battle, etw queue)
+    private static bool IsLive(epx battle, evj queue)
     {
-        var active = elb.ckia?.ckic;
-        return AuditRouting.IsLive(Ptr(battle), Ptr(queue), Ptr(active), Ptr(active?.clhf));
+        var active = emh.cmlp?.cmlr;
+        return AuditRouting.IsLive(Ptr(battle), Ptr(queue), Ptr(active), Ptr(active?.cnkw));
     }
 
-    private static CommandScope CreateScope(eor battle, etw queue, bool observed)
+    private static CommandScope CreateScope(epx battle, evj queue, bool observed)
     {
-        var active = elb.ckia?.ckic;
-        var command = Commands.Begin(Ptr(battle), Ptr(queue), Ptr(active), Ptr(active?.clhf));
+        var active = emh.cmlp?.cmlr;
+        var command = Commands.Begin(Ptr(battle), Ptr(queue), Ptr(active), Ptr(active?.cnkw));
         if (command == null) return new(); // sentinel for a nested foreign scheduler
         command.Exchange.CommandObserved = observed;
         var scope = new CommandScope { Command = command, Queue = queue, Shown = _shown,
@@ -150,15 +150,15 @@ internal static class CombatAudit
     }
 
     // One native scheduling invocation owns the whole sequence. No game method is called here.
-    private static void BeginCommand(eox __instance, out CommandScope __state)
+    private static void BeginCommand(eqd __instance, out CommandScope __state)
     {
         __state = null;
         if (!Enabled) return;
         CommandScope scope = null;
         Guard(() =>
         {
-            var battle = __instance.cliq;
-            scope = CreateScope(battle, battle?.clhf, true);
+            var battle = __instance.cnmh;
+            scope = CreateScope(battle, battle?.cnkw, true);
             if (scope.Command == null) _ignoredCommands++;
             Scheduling.Push(scope);
         });
@@ -181,42 +181,42 @@ internal static class CombatAudit
         });
     }
 
-    private static void Queued(etw __instance, ety __0)
+    private static void Queued(evj __instance, evl __0)
     {
         if (!Enabled) return;
         Guard(() =>
         {
-            var opening = __0?.TryCast<etk>();
-            var counter = __0?.TryCast<etm>();
+            var opening = __0?.TryCast<eux>();
+            var counter = __0?.TryCast<euz>();
             if (opening == null && counter == null) return;
             // Reject foreign simulations BEFORE touching previews or pending commands.
-            if (!IsLive(__0.cmec, __instance)) { _ignoredSteps++; return; }
+            if (!IsLive(__0.cojj, __instance)) { _ignoredSteps++; return; }
             var scope = Scheduling.Count == 0 ? null : Scheduling.Peek();
             if (scope?.Command == null || scope.Command.Queue != Ptr(__instance)
-                || scope.Command.Battle != Ptr(__0.cmec))
+                || scope.Command.Battle != Ptr(__0.cojj))
             {
                 if (opening == null) return; // unknown counter will invalidate matching damage, never imply zero
-                scope = CreateScope(__0.cmec, __instance, false);
+                scope = CreateScope(__0.cojj, __instance, false);
                 scope.Command.SchedulingComplete = true;
             }
             var command = scope.Command;
             var item = command.Exchange;
             bool first = opening != null && !command.HasOpening;
             var step = new AuditStep { Pointer = Ptr(__0), Kind = opening == null ? "counter" : "opening",
-                Caster = Ptr(opening?.cmbq ?? counter?.cmcf), Target = Ptr(counter?.cmcg),
-                Ability = Ptr(opening?.cmbp ?? counter?.cmcb), Dealer = Ptr((opening?.cmbp ?? counter?.cmcb)?.cjuf) };
+                Caster = Ptr(opening?.cogx ?? counter?.cohm), Target = Ptr(counter?.cohn),
+                Ability = Ptr(opening?.cogw ?? counter?.cohi), Dealer = Ptr((opening?.cogw ?? counter?.cohi)?.clxu) };
             if (!Commands.AddStep(command, step)) return;
             scope.NativeSteps.Add(step.Pointer, __0);
             if (first)
             {
-                var attacker = opening.cmbq;
-                int hex = opening.cmbn?.Length == 1 ? opening.cmbn[0] : -1;
-                int destination = attacker?.ctvn?.index ?? -1;
-                var type = opening.cmbp?.cjuj?.csus;
+                var attacker = opening.cogx;
+                int hex = opening.cogu?.Length == 1 ? opening.cogu[0] : -1;
+                int destination = attacker?.cwnz?.index ?? -1;
+                var type = opening.cogw?.clxy?.cvly;
                 if ((type == Hex.Configs.EAttackType.Melee || type == Hex.Configs.EAttackType.Range)
-                    && opening.cmbo != null && opening.cmbo.Length > 0) destination = opening.cmbo[0];
-                var cell = hex >= 0 ? attacker?.ctuv?.clgw?.dpr(hex) : null;
-                var defender = cell?.clbi;
+                    && opening.cogv != null && opening.cogv.Length > 0) destination = opening.cogv[0];
+                var cell = hex >= 0 ? attacker?.cwnh?.cnkn?.bhim(hex) : null;
+                var defender = cell?.cnez;
                 // A shown preview can be claimed by only one command, including nested schedulers.
                 var preview = ReferenceEquals(scope.Shown, _shown) ? scope.Shown : null;
                 if (defender == null && preview != null && cell?.fieldObjects != null)
@@ -226,8 +226,8 @@ internal static class CombatAudit
                         if (Ptr(unit) == preview.Key.Defender) { defender = unit; break; }
                     }
                 step.Target = Ptr(defender);
-                var key = new AuditKey(Ptr(attacker?.ctuv), elb.lastBattleId, Ptr(attacker), Ptr(defender),
-                    Ptr(opening.cmbp), hex, destination);
+                var key = new AuditKey(Ptr(attacker?.cwnh), emh.lastBattleId, Ptr(attacker), Ptr(defender),
+                    Ptr(opening.cogw), hex, destination);
                 string failure = null;
                 if (!item.CommandObserved) failure = "Не наблюдалась исходная команда атаки";
                 else if (preview == null || !AuditMatching.Matches(preview.Key, key,
@@ -248,44 +248,44 @@ internal static class CombatAudit
 
     private static AuditCommand CurrentCommand()
     {
-        var queue = elb.ckia?.ckic?.clhf;
-        return Commands.ForStep(Ptr(queue), Ptr(queue?.cmdt));
+        var queue = emh.cmlp?.cmlr?.cnkw;
+        return Commands.ForStep(Ptr(queue), Ptr(queue?.coja));
     }
     private static AuditStep CurrentStep(AuditCommand command) =>
-        command?.Exchange.Steps.FirstOrDefault(s => s.Pointer == Ptr(elb.ckia?.ckic?.clhf?.cmdt));
+        command?.Exchange.Steps.FirstOrDefault(s => s.Pointer == Ptr(emh.cmlp?.cmlr?.cnkw?.coja));
 
-    private static void OpeningStarted(etk __instance)
+    private static void OpeningStarted(eux __instance)
     {
         if (!Enabled) return;
         Guard(() =>
         {
-            var command = Commands.ForStep(Ptr(__instance.cmec?.clhf), Ptr(__instance));
+            var command = Commands.ForStep(Ptr(__instance.cojj?.cnkw), Ptr(__instance));
             if (command == null) return;
             var step = command.Exchange.Steps.Single(s => s.Pointer == Ptr(__instance));
-            step.Started = true; step.Luck = __instance.cmbu;
+            step.Started = true; step.Luck = __instance.cohb;
             command.Exchange.OpeningStarted = true;
             command.Exchange.OpeningLuck ??= step.Luck;
             Write(new { type = "step_started", id = command.Id, step });
         });
     }
 
-    private static void CounterStarted(etm __instance)
+    private static void CounterStarted(euz __instance)
     {
         if (!Enabled) return;
         Guard(() =>
         {
-            var command = Commands.ForStep(Ptr(__instance.cmec?.clhf), Ptr(__instance));
+            var command = Commands.ForStep(Ptr(__instance.cojj?.cnkw), Ptr(__instance));
             if (command == null) return;
             var item = command.Exchange;
             var step = item.Steps.Single(s => s.Pointer == Ptr(__instance));
-            step.Started = true; step.Luck = __instance.cmcd;
+            step.Started = true; step.Luck = __instance.cohk;
             var p = item.Preview;
             if (p != null && step.Caster == p.Key.Defender && step.Target == p.Key.Attacker)
             {
                 item.CounterLuck = step.Luck;
-                item.ActualCounter = $"{step.Ability:X}:{__instance.cmcb?.cjuf?.data?.attackPatternSid}";
-                item.DefenderBeforeCounter = Snapshot(__instance.cmcf);
-                item.AttackerBeforeCounter = Snapshot(__instance.cmcg);
+                item.ActualCounter = $"{step.Ability:X}:{__instance.cohi?.clxu?.data?.attackPatternSid}";
+                item.DefenderBeforeCounter = Snapshot(__instance.cohm);
+                item.AttackerBeforeCounter = Snapshot(__instance.cohn);
             }
             Write(new { type = "step_started", id = command.Id, step,
                 defender = item.DefenderBeforeCounter, attacker = item.AttackerBeforeCounter });
@@ -293,13 +293,13 @@ internal static class CombatAudit
     }
 
     // A scheduled counter can be cancelled; only the native execution call confirms it.
-    private static void CounterExecuting(exk __instance)
+    private static void CounterExecuting(ezp __instance)
     {
         if (!Enabled) return;
         Guard(() =>
         {
             var command = CurrentCommand(); var step = CurrentStep(command);
-            if (step == null || step.Kind != "counter" || step.Caster != Ptr(__instance.cnaa) || step.Executed) return;
+            if (step == null || step.Kind != "counter" || step.Caster != Ptr(__instance.cpju) || step.Executed) return;
             step.Executed = true;
             command.Exchange.CounterStarted = true; command.Exchange.CounterSteps++;
             command.Exchange.CounterLuck = step.Luck;
@@ -307,19 +307,19 @@ internal static class CombatAudit
         });
     }
 
-    private static void BeforeDamage(exr __instance, ekf __0, ekg __1, ekb __2, int __3, out DamageScope __state)
+    private static void BeforeDamage(ezv __instance, ell __0, elm __1, elh __2, int __3, out DamageScope __state)
     {
         __state = null;
         if (!Enabled) return;
         DamageScope scope = null;
         Guard(() =>
         {
-            var source = __0?.TryCast<Unit>(); var target = __instance.cnck;
-            if (source == null || target == null || !IsLive(target.ctuv, target.ctuv?.clhf)
-                || Ptr(source.ctuv) != Ptr(target.ctuv)) return;
+            var source = __0?.TryCast<Unit>(); var target = __instance.cpme;
+            if (source == null || target == null || !IsLive(target.cwnh, target.cwnh?.cnkw)
+                || Ptr(source.cwnh) != Ptr(target.cwnh)) return;
             var command = CurrentCommand(); var step = CurrentStep(command); var item = command?.Exchange;
             if (item?.Preview == null || step == null) return;
-            var ability = __1?.TryCast<eib>();
+            var ability = __1?.TryCast<ejh>();
             string phase = AuditRouting.Phase(step, item.Preview, Ptr(source), Ptr(target), Ptr(ability), Ptr(__2));
             if (phase == "opening") step.Executed = true;
             scope = new() { Exchange = item, Receiver = target, Source = source, Ability = ability,
@@ -353,7 +353,7 @@ internal static class CombatAudit
             if (!matches)
             {
                 var receiver = e.damageReceiver?.TryCast<Unit>();
-                if (receiver == null || !IsLive(receiver.ctuv, receiver.ctuv?.clhf)) return;
+                if (receiver == null || !IsLive(receiver.cwnh, receiver.cwnh?.cnkw)) return;
                 if (command == null)
                     foreach (var pending in Commands.Pending) Unattributed(e, pending.Exchange);
                 else Unattributed(e, command.Exchange);
@@ -368,7 +368,7 @@ internal static class CombatAudit
             if (item.Hits.Count >= 128) { item.ObserverFailure = "Слишком много событий в одной команде"; return; }
             item.Hits.Add(hit);
             if (scope.Phase == "other") item.OtherDamageEvents++;
-            Write(new { type = "damage", id = item.Id, step = Ptr(elb.ckia?.ckic?.clhf?.cmdt), hit });
+            Write(new { type = "damage", id = item.Id, step = Ptr(emh.cmlp?.cmlr?.cnkw?.coja), hit });
         });
     }
 
@@ -385,8 +385,8 @@ internal static class CombatAudit
         });
     }
 
-    private static AuditKey Key(PreviewCapture.Context c) => new(Ptr(c.Attacker.ctuv), elb.lastBattleId,
-        Ptr(c.Attacker), Ptr(c.Defender), Ptr(c.Attack), c.TargetHex.index, c.Destination?.index ?? c.Attacker.ctvn.index);
+    private static AuditKey Key(PreviewCapture.Context c) => new(Ptr(c.Attacker.cwnh), emh.lastBattleId,
+        Ptr(c.Attacker), Ptr(c.Defender), Ptr(c.Attack), c.TargetHex.index, c.Destination?.index ?? c.Attacker.cwnz.index);
     private static long Ptr(Il2CppObjectBase value) => value?.Pointer.ToInt64() ?? 0;
     private static bool SameState(AuditUnit a, AuditUnit b) => JsonSerializer.Serialize(a) == JsonSerializer.Serialize(b);
 
@@ -402,16 +402,16 @@ internal static class CombatAudit
             ["finalAbilityDamageBonusPercent"] = s.finalAbilityDamageBonusPercent,
             ["damagePerHex"] = s.damagePerHex, ["maxInDmg"] = s.maxInDmg,
             ["stacksToLeave"] = s.stacksToLeave, ["overkillProtection"] = s.overkillProtection,
-            ["numCounters"] = s.numCounters, ["remainingCountersNative"] = unit.cmwp.cnbt
+            ["numCounters"] = s.numCounters, ["remainingCountersNative"] = unit.cpgj.cpln
         };
         var buffs = new List<string>();
-        if (unit.ctuw?.ckby != null)
-            foreach (var pair in unit.ctuw.ckby)
+        if (unit.cwni?.cmfn != null)
+            foreach (var pair in unit.cwni.cmfn)
                 if (pair.Value != null)
                     foreach (var buff in pair.Value)
                         if (buff != null) buffs.Add($"{buff.sid}:{buff.duration}:{buff.charges}");
         buffs.Sort(StringComparer.Ordinal);
-        return new(Ptr(unit), unit.ctux, unit.ckyo, unit.ctvn?.index ?? -1,
+        return new(Ptr(unit), unit.cwnj, unit.cncf, unit.cwnz?.index ?? -1,
             NativeForecast.Health(unit), stats, buffs.ToArray());
     }
 

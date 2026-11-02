@@ -22,7 +22,7 @@ public sealed class AuditJournal
         CurrentPath = Path.Combine(_folder, $"{Session}-part{++_part:D3}.jsonl");
         _bytes = 0;
         Append(JsonSerializer.Serialize(new { type = "session", schema = 2, session = Session,
-            part = _part, mod = _version, steamBuild = 25672315, startedUtc = DateTime.UtcNow,
+            part = _part, mod = _version, steamBuild = 26321935, startedUtc = DateTime.UtcNow,
             luckPolicy = "exclude_non_neutral", mode = "observe_only" }) + Environment.NewLine);
     }
     public void Write(object record)

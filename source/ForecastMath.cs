@@ -3,6 +3,17 @@ namespace OldenEra.RetaliationHints;
 // Pure health arithmetic. Full stacks in the game exclude the wounded top creature.
 public readonly record struct StackHealth(int Count, int Hp, int TopHp, int Temporary = 0, bool TopTemporary = false)
 {
+    // fullStacks and tempFullStacks exclude the separate wounded top in the native data.
+    public static StackHealth FromNativeCounts(int full, int temporaryFull, int topHp, int hp, bool topTemporary)
+    {
+        if (full < 0 || temporaryFull < 0 || hp <= 0 || topHp < 0 || topHp > hp)
+            throw new ArgumentOutOfRangeException(nameof(full));
+        int count = checked(full + temporaryFull + (topHp > 0 ? 1 : 0));
+        int temporary = checked(temporaryFull + (topHp > 0 && topTemporary ? 1 : 0));
+        return new(count, hp, count == 0 ? 0 : topHp > 0 ? topHp : hp, temporary,
+            count > 0 && (topHp > 0 ? topTemporary : temporaryFull > 0));
+    }
+
     public long Total => Count <= 0 ? 0 : (long)(Count - 1) * Hp + TopHp;
     public StackHealth Hit(int damage)
     {

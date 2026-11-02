@@ -1,3 +1,7 @@
+# Текущая сборка 26321935
+
+Актуальные методы, поля, адреса и пределы проверки версии 0.1.14 перечислены в [отчёте о совместимости](compatibility-26321935.md). Ниже сохранены исторические заметки по предыдущей сборке 25672315. Их адреса нельзя использовать для нового патча.
+
 # Build-pinned native adapter
 
 These names belong only to Steam build 25672315. Plugin startup checks both GameAssembly.dll and IL2CPP metadata SHA-256 before resolving the hooks.

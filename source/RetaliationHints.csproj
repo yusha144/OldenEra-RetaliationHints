@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>disable</Nullable><LangVersion>latest</LangVersion>
-    <AssemblyName>OldenEra.RetaliationHints</AssemblyName><Version>0.1.13</Version>
+    <AssemblyName>OldenEra.RetaliationHints</AssemblyName><Version>0.1.14</Version>
     <Description>Olden Era Retaliation Hints.</Description>
   </PropertyGroup>
   <ItemGroup>
@@ -23,4 +23,3 @@
     <Error Condition="!Exists('$(GameRoot)\BepInEx\interop\Hex.dll')" Text="Не найдены библиотеки игры. Передайте -p:GameRoot=путь_к_игре с установленным BepInEx 6 IL2CPP." />
   </Target>
 </Project>
-

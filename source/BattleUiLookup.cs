@@ -27,30 +27,30 @@ internal sealed class BattleUiLookup
 
     private static bool Usable(BattleUIController view)
     {
-        if (!view || !view.gameObject.activeInHierarchy || !view.cszk || !view.cszk.rootCanvasRect
-            || !view.cszk.rootCanvasRect.gameObject.activeInHierarchy) return false;
-        var canvas = view.cszk.rootCanvasRect.GetComponentInParent<Canvas>();
+        if (!view || !view.gameObject.activeInHierarchy || !view.cvqr || !view.cvqr.rootCanvasRect
+            || !view.cvqr.rootCanvasRect.gameObject.activeInHierarchy) return false;
+        var canvas = view.cvqr.rootCanvasRect.GetComponentInParent<Canvas>();
         return canvas && canvas.isActiveAndEnabled && canvas.rootCanvas && canvas.rootCanvas.isActiveAndEnabled;
     }
 
     internal static bool ModalVisible(BattleUIController view)
     {
-        // ccgc is a remembered mode, not visibility: pooled UI can retain it
+        // cegf is a remembered mode, not visibility: pooled UI can retain it
         // between battles. Inspect actual windows without resetting game state.
         var log = view.battleLog;
-        if (log && log.cnem && log.logWindowCanvasGroup && log.logWindowCanvasGroup.gameObject.activeInHierarchy
+        if (log && log.cppd && log.logWindowCanvasGroup && log.logWindowCanvasGroup.gameObject.activeInHierarchy
             && log.logWindowCanvasGroup.alpha > .01f) return true;
-        var windows = cpo.ccog;
-        if (windows?.ccoh != null)
-            foreach (var pair in windows.ccoh) if (Blocks(pair.Value)) return true;
-        if (windows?.ccoi != null)
-            foreach (var window in windows.ccoi) if (Blocks(window)) return true;
+        var windows = cqo.cvrr;
+        if (windows?.ceom != null)
+            foreach (var pair in windows.ceom) if (Blocks(pair.Value)) return true;
+        if (windows?.ceon != null)
+            foreach (var window in windows.ceon) if (Blocks(window)) return true;
         return false;
     }
 
     private static bool Blocks(BhScreen window)
     {
-        if (!window || !window.gameObject.activeInHierarchy || !window.cszv
+        if (!window || !window.gameObject.activeInHierarchy || !window.cvrc
             || !window.canvas || !window.canvas.isActiveAndEnabled || (window.cg && window.cg.alpha <= .01f))
             return false;
         string name = window.GetIl2CppType().Name;

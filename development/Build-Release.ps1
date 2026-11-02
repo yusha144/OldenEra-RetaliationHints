@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][string]$GameRoot,
     [string]$LoaderArchive,
@@ -58,7 +58,6 @@ foreach ($path in @($archive, $checksum, $record)) {
 Write-Host ('Building committed snapshot: ' + $commit)
 Write-Host 'Uncommitted files are not included.'
 Run-Native 'powershell.exe' @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $snapshot 'development/tests/Installer.Tests.ps1'))
-Run-Native 'dotnet' @('run', '--project', (Join-Path $snapshot $settings.tests), '-c', 'Release', '--', $core)
 Run-Native 'dotnet' @('build', $project, '-c', 'Release', ('-p:GameRoot=' + $game), ('-p:SourceRevisionId=' + $commit), '--nologo')
 $dll = Join-Path (Split-Path -Parent $project) ('bin\Release\' + $framework + '\' + $assembly + '.dll')
 if (!(Test-Path -LiteralPath $dll)) { throw 'The mod DLL was not produced.' }
@@ -68,6 +67,7 @@ $pluginSource = Get-Content -LiteralPath (Join-Path $snapshot 'source/Plugin.cs'
 if ($pluginSource -notmatch ('const string Version = "' + [regex]::Escape($version) + '";')) {
     throw 'Версия Plugin.cs не совпадает с версией проекта.'
 }
+Run-Native 'dotnet' @('run', '--project', (Join-Path $snapshot $settings.tests), '-c', 'Release', '--', $core, $dll)
 $package = Join-Path $work 'package'
 $payload = Join-Path $package '_files\payload'
 $pluginFolder = Join-Path $payload ('BepInEx\plugins\' + $settings.mod)
