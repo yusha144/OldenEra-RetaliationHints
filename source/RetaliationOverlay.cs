@@ -29,15 +29,15 @@ public sealed class RetaliationOverlay : MonoBehaviour
                 ReleaseHint(); _uiLookup.Reset();
                 _battleGeneration = PreviewCapture.BattleGeneration;
             }
-            if (!Plugin.Instance.Enabled.Value || !emh.cmlp) { Hide(); return; }
+            if (!Plugin.Instance.Enabled.Value || !emh.cmmp) { Hide(); return; }
             Plugin.Instance.TraceOnce("battle-update", "Retaliation display updater is running in a battle.");
             var context = PreviewCapture.Current;
             if (context == null) { Hide(); return; }
-            if (!PreviewCapture.Same(emh.cmlp.cmls, context.Hover)
-                || !PreviewCapture.Same(context.Hover.cngo, context.TargetHex)
+            if (!PreviewCapture.Same(emh.cmmp.cmms, context.Hover)
+                || !PreviewCapture.Same(context.Hover.cnho, context.TargetHex)
                 || !PreviewCapture.Occupies(context.Defender, context.TargetHex)
-                || !PreviewCapture.Same(context.Hover.cnhd, context.Attacker)
-                || !PreviewCapture.Same(context.Hover.cnhc, context.Attack))
+                || !PreviewCapture.Same(context.Hover.cnid, context.Attacker)
+                || !PreviewCapture.Same(context.Hover.cnic, context.Attack))
             { Hide("hover-changed"); return; }
             if (!context.TargetView || !context.TargetView.gameObject.activeInHierarchy || !context.Damage.Valid)
             { Hide("target-panel-unavailable"); return; }
@@ -49,8 +49,8 @@ public sealed class RetaliationOverlay : MonoBehaviour
             var battleUi = _uiLookup.Find();
             if (!battleUi) { Hide("battle-ui-unavailable"); return; }
             if (BattleUiLookup.ModalVisible(battleUi)) { Hide("battle-window-visible"); return; }
-            Plugin.Instance.TraceOnce("battle-ui-resolved", $"Active battle UI: {battleUi.Pointer}, remembered mode={battleUi.cegf}, battle={emh.lastBattleId}.");
-            var cursorUi = battleUi.cvqr;
+            Plugin.Instance.TraceOnce("battle-ui-resolved", $"Active battle UI: {battleUi.Pointer}, remembered mode={battleUi.cehc}, battle={emh.lastBattleId}.");
+            var cursorUi = battleUi.cvrr;
             if (!cursorUi || !cursorUi.rootCanvasRect
                 || !cursorUi.simpleTooltip || !cursorUi.simpleTooltip.targetsText)
             { Hide("cursor-resources-unavailable"); return; }

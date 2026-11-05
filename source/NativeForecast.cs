@@ -10,10 +10,10 @@ internal static class NativeForecast
     {
         var attacker = Health(context.Attacker);
         var defender = Health(context.Defender);
-        bool before = context.Defender.bjnn("counter_before_attack");
+        bool before = context.Defender.bjof("counter_before_attack");
         if (!context.CanCounter) return new(0, 0, false);
-        if (context.Counter?.clxu == null) throw Unavailable("нет данных контрудара");
-        if (!Plugin.Instance.Patterns.TryGet(context.Counter.clxu.data.attackPatternSid, out float multiplier))
+        if (context.Counter?.clyt == null) throw Unavailable("нет данных контрудара");
+        if (!Plugin.Instance.Patterns.TryGet(context.Counter.clyt.data.attackPatternSid, out float multiplier))
             throw Unavailable("особая форма контрудара");
         if (context.Attacker.stats.overkillProtection != 0 || context.Defender.stats.overkillProtection != 0)
             throw Unavailable("защита от гибели");
@@ -21,10 +21,10 @@ internal static class NativeForecast
         if (!before)
         {
             CheckDirectEffects(context.Attack);
-            var dealer = context.Attack.clxu?.data;
+            var dealer = context.Attack.clyt?.data;
             if (!string.IsNullOrEmpty(dealer?.buff?.sid) || !string.IsNullOrEmpty(dealer?.sideBuff?.sid)
-                || HasSideEffect(context.Attack.clxv?.data) || HasSideEffect(context.Attack.clxw?.data)
-                || !string.IsNullOrEmpty(context.Attack.clxy.tempSelfBuff))
+                || HasSideEffect(context.Attack.clyu?.data) || HasSideEffect(context.Attack.clyv?.data)
+                || !string.IsNullOrEmpty(context.Attack.clyx.tempSelfBuff))
                 throw Unavailable("эффект после попадания");
         }
         var healing = before ? null : LifeSteal(context, attacker);
@@ -34,16 +34,16 @@ internal static class NativeForecast
         {
             if (!counter) return opening;
             if (cache.TryGetValue((sourceHealth, targetHealth), out var cached)) return cached;
-            var source = Snapshot(context.Defender, sourceHealth, context.Defender.cwnz);
+            var source = Snapshot(context.Defender, sourceHealth, context.Defender.cwoz);
             var target = Snapshot(context.Attacker, targetHealth, context.Destination);
             var ability = context.Counter.MemberwiseClone().Cast<ejh>();
-            ability.clxp = source;
+            ability.clyo = source;
             var parameters = new DamageUiParams(source.Cast<ell>(), ability.Cast<elm>(), target.Cast<elp>(),
                 multiplier, ESideCastType.Unit, 0);
-            var forecast = exv.bjex(parameters, true);
-            if (forecast == null || !forecast.cozg || !forecast.cozp)
+            var forecast = exv.bjfp(parameters, true);
+            if (forecast == null || !forecast.cpag || !forecast.cpap)
                 throw Unavailable("нет прогноза контрудара");
-            var range = new DamageRange(forecast.cozh, forecast.cozi);
+            var range = new DamageRange(forecast.cpah, forecast.cpai);
             trace?.Branches.Add(new(sourceHealth, targetHealth, range));
             cache[(sourceHealth, targetHealth)] = range;
             return range;
@@ -71,12 +71,12 @@ internal static class NativeForecast
     // guaranteed kill/drain/movement effect while displaying an ordinary number.
     private static void CheckDirectEffects(ejh ability)
     {
-        var dealer = ability.clxu?.data;
+        var dealer = ability.clyt?.data;
         if (dealer?.targetMechanics != null && dealer.targetMechanics.Length > 0)
             throw Unavailable("особый эффект удара");
-        if (ability.clxx != null)
-            foreach (var mechanic in ability.clxx)
-                if (mechanic != null && mechanic.cnrx != EMechType.Vampirism)
+        if (ability.clyw != null)
+            foreach (var mechanic in ability.clyw)
+                if (mechanic != null && mechanic.cnsx != EMechType.Vampirism)
                     throw Unavailable("особый эффект атаки");
         // Self healing after the counter does not change casualties of that hit.
         // Opening self-healing is handled explicitly below.
@@ -84,30 +84,30 @@ internal static class NativeForecast
 
     private static Func<StackHealth, int, StackHealth> LifeSteal(PreviewCapture.Context context, StackHealth health)
     {
-        var mechanics = context.Attack.clxx;
+        var mechanics = context.Attack.clyw;
         if (mechanics == null || mechanics.Length == 0) return null;
         var active = new List<etz>();
         foreach (var mechanic in mechanics)
         {
-            if (mechanic == null || mechanic.cnrx != EMechType.Vampirism) continue;
+            if (mechanic == null || mechanic.cnsx != EMechType.Vampirism) continue;
             var life = mechanic.TryCast<etz>();
-            if (life == null || !life.cnrw.afterAttack || life.coay != ETargetAllegiance.Self)
+            if (life == null || !life.cnsw.afterAttack || life.coby != ETargetAllegiance.Self)
                 throw Unavailable("особое лечение после удара");
-            // These are read-only native blocker checks, also used by etz.bhtj.
-            if (context.Attacker.cwni.bfii(mechanic) || eqd.bhox(context.Defender, mechanic)) continue;
-            if (life.coaz != EHealType.WithTempStacks && life.coaz != EHealType.WithRealUntilStart
-                && life.coaz != EHealType.WithoutRespawn)
+            // These are read-only native blocker checks, also used by etz.bhub.
+            if (context.Attacker.cwoi.bfja(mechanic) || eqd.bhpp(context.Defender, mechanic)) continue;
+            if (life.cobz != EHealType.WithTempStacks && life.cobz != EHealType.WithRealUntilStart
+                && life.cobz != EHealType.WithoutRespawn)
                 throw Unavailable("особое воскрешение");
-            if (health.Temporary > 0 && life.coaz == EHealType.WithRealUntilStart)
+            if (health.Temporary > 0 && life.cobz == EHealType.WithRealUntilStart)
                 throw Unavailable("воскрешение с временными существами");
-            if (!float.IsFinite(life.coax) || life.coax < 0 || life.coaw < 0)
+            if (!float.IsFinite(life.cobx) || life.cobx < 0 || life.cobw < 0)
                 throw Unavailable("неизвестное лечение");
             active.Add(life);
         }
         if (active.Count == 0) return null;
         if (active.Count > 1) throw Unavailable("несколько источников лечения");
         // A splash attack can heal from multiple victims, not just the hovered one.
-        if (!Plugin.Instance.Patterns.IsSingleDamageCell(context.Attack.clxu.data.attackPatternSid))
+        if (!Plugin.Instance.Patterns.IsSingleDamageCell(context.Attack.clyt.data.attackPatternSid))
             throw Unavailable("лечение от нескольких целей");
         if (context.Attacker.stats.limitStacks) throw Unavailable("особый предел численности");
         var effect = active[0];
@@ -115,16 +115,16 @@ internal static class NativeForecast
         {
             // Match native order: truncate base heal, apply final-healing bonus,
             // then vampirism modifier and the game's health cap. No event execution.
-            float raw = effect.coaw + inflicted * effect.coax;
+            float raw = effect.cobw + inflicted * effect.cobx;
             if (!float.IsFinite(raw) || raw >= int.MaxValue) throw Unavailable("слишком большой прогноз");
-            int amount = eqd.bhop(context.Attacker, (int)raw);
+            int amount = eqd.bhph(context.Attacker, (int)raw);
             float adjusted = amount * (1f + context.Attacker.stats.vampirismHealMultiplier);
             if (!float.IsFinite(adjusted) || adjusted >= int.MaxValue) throw Unavailable("неизвестное лечение");
             amount = Math.Max(0, (int)adjusted);
             // bjqx is the read-only cap function; do NOT call bjqy/bjqv (mutators).
-            amount = ezu.bjqx(effect.coaz, context.Attacker.cpgj, context.Attacker.stats, amount);
+            amount = ezu.bjrp(effect.cobz, context.Attacker.cphj, context.Attacker.stats, amount);
             if (state.Total + amount > int.MaxValue) throw Unavailable("слишком большой прогноз");
-            return state.Heal(amount, int.MaxValue, effect.coaz == EHealType.WithTempStacks);
+            return state.Heal(amount, int.MaxValue, effect.cobz == EHealType.WithTempStacks);
         };
     }
 
@@ -132,28 +132,28 @@ internal static class NativeForecast
 
     internal static StackHealth Health(Unit unit)
     {
-        var data = unit.cpgj;
+        var data = unit.cphj;
         return StackHealth.FromNativeCounts(data.fullStacks, data.tempFullStacks,
-            data.cplr, unit.stats.hp, data.cplu);
+            data.cpmr, unit.stats.hp, data.cpmu);
     }
 
     private static Unit Snapshot(Unit original, StackHealth health, BattleHex position)
     {
         var copy = original.MemberwiseClone().Cast<Unit>();
-        var data = original.cpgj.MemberwiseClone().Cast<UnitData>();
-        copy._cpgj_k__BackingField = data;
+        var data = original.cphj.MemberwiseClone().Cast<UnitData>();
+        copy._cphj_k__BackingField = data;
         data.unit = copy;
         // Temporary creatures are consumed first; the wounded top may itself be
         // temporary. Preserve that distinction instead of converting them to real units.
         bool tempTop = health.TopTemporary;
         data.fullStacks = Math.Max(0, health.Count - health.Temporary - (tempTop ? 0 : 1));
         data.tempFullStacks = Math.Max(0, health.Temporary - (tempTop ? 1 : 0));
-        data.cplu = tempTop;
-        data.cplr = health.TopHp;
-        var location = original.cnce.MemberwiseClone().Cast<eon>();
-        copy.cnce = location;
-        location.cncl = copy;
-        location.cnck = position;
+        data.cpmu = tempTop;
+        data.cpmr = health.TopHp;
+        var location = original.cnde.MemberwiseClone().Cast<eon>();
+        copy.cnde = location;
+        location.cndl = copy;
+        location.cndk = position;
         return copy;
     }
 }

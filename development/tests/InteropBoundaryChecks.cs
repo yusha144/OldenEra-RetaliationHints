@@ -48,16 +48,16 @@ internal static class InteropBoundaryChecks
             }
             hooks++;
         }
-        Hook("Hex.Session.Battle.BhBattleUnitInfoView", "bhhb", "PreviewCapture+DamageShown", "Postfix", true);
-        Hook("eqd", "bhpx", "PreviewCapture+CounterChecked", "Postfix", true);
-        Hook("epl", "bhdb", "PreviewCapture+PreviewHidden", "Postfix", true);
-        Hook("eqd", "bhpm", "CombatAudit", "BeginCommand");
-        Hook("evj", "biel", "CombatAudit", "Queued");
-        Hook("eux", "biea", "CombatAudit", "OpeningStarted");
-        Hook("euz", "biea", "CombatAudit", "CounterStarted");
-        Hook("ezp", "bjpx", "CombatAudit", "CounterExecuting");
-        Hook("ezv", "bjrp", "CombatAudit", "BeforeDamage");
-        Hook("eoi", "bglr", "CombatAudit", "DamageEvent");
+        Hook("Hex.Session.Battle.BhBattleUnitInfoView", "bhht", "PreviewCapture+DamageShown", "Postfix", true);
+        Hook("eqd", "bhqp", "PreviewCapture+CounterChecked", "Postfix", true);
+        Hook("epl", "bhdt", "PreviewCapture+PreviewHidden", "Postfix", true);
+        Hook("eqd", "bhqe", "CombatAudit", "BeginCommand");
+        Hook("evj", "bifd", "CombatAudit", "Queued");
+        Hook("eux", "bies", "CombatAudit", "OpeningStarted");
+        Hook("euz", "bies", "CombatAudit", "CounterStarted");
+        Hook("ezp", "bjqp", "CombatAudit", "CounterExecuting");
+        Hook("ezv", "bjsh", "CombatAudit", "BeforeDamage");
+        Hook("eoi", "bgmj", "CombatAudit", "DamageEvent");
         if (plugin.Method("OldenEra.RetaliationHints.CombatAudit", "EndCommand").Signature.ReturnType != "Void"
             || plugin.Method("OldenEra.RetaliationHints.CombatAudit", "AfterDamage").Signature.ReturnType != "Void")
             throw new Exception("Finalizers must preserve the game's exceptions");
