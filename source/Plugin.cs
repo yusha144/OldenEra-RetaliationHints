@@ -10,7 +10,7 @@ namespace OldenEra.RetaliationHints;
 public sealed class Plugin : BasePlugin
 {
     internal const string Id = "local.oldenera.retaliationhints";
-    internal const string Version = "0.1.16";
+    internal const string Version = "0.1.17";
     internal static Plugin Instance;
     internal ConfigEntry<bool> Enabled;
     internal ConfigEntry<float> TextScale;

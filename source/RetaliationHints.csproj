@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>disable</Nullable><LangVersion>latest</LangVersion>
-    <AssemblyName>OldenEra.RetaliationHints</AssemblyName><Version>0.1.16</Version>
+    <AssemblyName>OldenEra.RetaliationHints</AssemblyName><Version>0.1.17</Version>
     <Description>Olden Era Retaliation Hints.</Description>
   </PropertyGroup>
   <ItemGroup>
