@@ -14,6 +14,8 @@ Windows x64, Steam build 26428102, Unity 6000.0.66, BepInEx Unity.IL2CPP 6.0.0-b
 
 [Установка, обновление и удаление](Docs/ops-admin.md) · [Обратная связь](Docs/feedback.md)
 
+Для связи с автором в Discord используйте имя `@yusha144`.
+
 ## Что означают подсказки
 
 | Подсказка | Значение |
